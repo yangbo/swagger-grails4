@@ -29,6 +29,10 @@ configurations {
     }
 }
 
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+[compileJava, compileTestJava, compileGroovy, compileTestGroovy]*.options*.encoding = 'UTF-8'
+
 dependencies {
     // swagger
     compile "io.swagger.core.v3:swagger-integration:2.1.3"

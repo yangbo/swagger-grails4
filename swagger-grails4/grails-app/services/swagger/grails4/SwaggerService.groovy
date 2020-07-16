@@ -1,3 +1,5 @@
+package swagger.grails4
+
 import com.fasterxml.jackson.core.JsonProcessingException
 import grails.web.mapping.LinkGenerator
 import org.apache.commons.lang.StringUtils
