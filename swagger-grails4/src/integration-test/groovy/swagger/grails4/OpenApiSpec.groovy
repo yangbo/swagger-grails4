@@ -33,7 +33,7 @@ class OpenApiSpec extends Specification implements AutowiredTest {
 
         OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
         ctx.setOpenApiScanner(new GrailsScanner(grailsApplication: grailsApplication))
-        ctx.setOpenApiReader(new Reader(application: grailsApplication, config: config, applicationContext: applicationContext))
+        ctx.setOpenApiReader(new Reader(application: grailsApplication, config: config))
         ctx.init()
         OpenAPI openAPI = ctx.read()
         then:

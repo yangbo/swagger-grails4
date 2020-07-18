@@ -9,7 +9,6 @@ import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
 import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.tags.Tag
-import org.springframework.context.ApplicationContext
 import swagger.grails4.openapi.builder.OperationBuilder
 
 import java.lang.reflect.Method
@@ -26,7 +25,6 @@ class Reader implements OpenApiReader {
 
     OpenAPIConfiguration config
     GrailsApplication application
-    ApplicationContext applicationContext
 
     private OpenAPI openAPI = new OpenAPI()
     private Components components = new Components()
@@ -72,6 +70,7 @@ class Reader implements OpenApiReader {
             log.error("No grails controller found for class ${controllerClass}")
             return
         }
+        def applicationContext = application.mainContext
         def urlMappingsHolder = applicationContext.getBean("grailsUrlMappingsHolder", UrlMappingsHolder)
         urlMappingsHolder.urlMappings.each {
             log.debug("url mapping: ${it}")
