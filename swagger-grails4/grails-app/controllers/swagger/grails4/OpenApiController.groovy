@@ -6,6 +6,8 @@ import swagger.grails4.openapi.ApiDoc
 
 /**
  * OpenAPI v3 api document controller
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
  */
 @ApiDoc(tag={
     name "OpenAPI v3 controller"
@@ -15,7 +17,8 @@ class OpenApiController {
 
     OpenApiService openApiService
 
-    @ApiDoc({
+    @ApiDoc(operation={
+        summary "The Index of OpenAPI documents"
     })
     def index() {
         def doc = openApiService.generateDocument()

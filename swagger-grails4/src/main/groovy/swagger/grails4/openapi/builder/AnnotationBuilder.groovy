@@ -1,5 +1,6 @@
 package swagger.grails4.openapi.builder
 
+import io.swagger.v3.oas.models.OpenAPI
 
 import java.lang.reflect.Method
 
@@ -13,9 +14,15 @@ import java.lang.reflect.Method
  *   so they should be skipped from directly assigning and processed by a builder method.
  *   Used when there is no such annotation elements in property of models.
  * </pre>
- * @author bo.yang
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
  */
 trait AnnotationBuilder {
+
+    /**
+     * The OpenAPI object to build
+     */
+    OpenAPI openAPI
 
     private List systemMethods = ["equals", "toString", "hashCode", "annotationType"]
 
@@ -27,7 +34,7 @@ trait AnnotationBuilder {
     /**
      * Extract properties from OpenAPI annotation
      */
-    def annotationToProperties() {
+    def initPrimitiveElements() {
         openApiAnnotationClass.methods.each { Method method ->
             if (method.name in systemMethods) {
                 return
@@ -66,10 +73,13 @@ trait AnnotationBuilder {
     /**
      * For string and string[] annotation attributes we will assign the value to model property.
      *
-     * @param name
-     * @param args
+     * @param name method name
+     * @param args method arguments
      */
     def methodMissing(String name, args) {
-
+        // assign primitive element value to model directly
+        if (name in primitiveElements) {
+            this.model[name] = args[0]
+        }
     }
 }

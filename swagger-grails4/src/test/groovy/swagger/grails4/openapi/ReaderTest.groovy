@@ -1,32 +1,18 @@
-package swagger.grails4
+package swagger.grails4.openapi
 
-import grails.core.GrailsApplication
-import grails.web.mapping.LinkGenerator
-import grails.web.mapping.UrlMappingsHolder
+import grails.testing.web.controllers.ControllerUnitTest
 import io.swagger.v3.oas.integration.GenericOpenApiContext
 import io.swagger.v3.oas.integration.SwaggerConfiguration
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiContext
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
-import swagger.grails4.openapi.GrailsScanner
-import swagger.grails4.openapi.Reader
+import spock.lang.Specification
+import swagger.grails4.OpenApiController
 
-/**
- * 生成 OpenAPI 文档json的服务
- */
-class OpenApiService {
-
-    LinkGenerator linkGenerator
-
-    GrailsApplication grailsApplication
-    UrlMappingsHolder urlMappingsHolder
-
-    /**
-     * 生成 OpenAPI 文档对象
-     */
-    def generateDocument() {
-
+class ReaderTest extends Specification implements ControllerUnitTest<OpenApiController> {
+    def "Test Read"() {
+        when:
         OpenAPIConfiguration config = new SwaggerConfiguration().openAPI(configOpenApi())
         config.setReaderClass("swagger.grails4.openapi.Reader")
 
@@ -34,7 +20,9 @@ class OpenApiService {
         ctx.setOpenApiScanner(new GrailsScanner(grailsApplication: grailsApplication))
         ctx.init()
         ctx.getOpenApiReader().application = grailsApplication
-        ctx.read()
+        OpenAPI openAPI = ctx.read()
+        then:
+        openAPI
     }
 
     /**
@@ -42,7 +30,6 @@ class OpenApiService {
      * @return OpenAPI object has been configured.
      */
     OpenAPI configOpenApi() {
-        // TODO resolve config from groovy script or annotation
         new OpenAPI().info(new Info().description("TEST INFO DESC"))
     }
 }

@@ -2,6 +2,11 @@ package swagger.grails4
 
 import grails.plugins.*
 
+/**
+ * Swagger Grails4 plugin
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
+ */
 class SwaggerGrails4GrailsPlugin extends Plugin {
 
     // the version or versions of Grails the plugin is designed for

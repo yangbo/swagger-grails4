@@ -39,13 +39,13 @@ import swagger.grails4.openapi.OpenApiConfig
 class SampleController {
     @ApiDoc(operation = {
         summary "List sample data"
-        responses ([{
-                        responseCode 200
-                        description "success"
-                        content {
-                            schema RestApiResponse
-                        }
-                    }])
+        responses([{
+                       responseCode 200
+                       description "success"
+                       content {
+                           schema RestApiResponse
+                       }
+                   }])
     })
     def index() {
     }

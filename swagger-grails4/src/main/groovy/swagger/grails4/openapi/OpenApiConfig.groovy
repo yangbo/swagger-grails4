@@ -5,6 +5,8 @@ import java.lang.annotation.RetentionPolicy
 
 /**
  * The global configuration for OpenAPI document
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @interface OpenApiConfig {

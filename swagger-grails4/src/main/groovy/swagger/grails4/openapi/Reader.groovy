@@ -2,25 +2,34 @@ package swagger.grails4.openapi
 
 
 import grails.core.GrailsApplication
+import grails.core.GrailsControllerClass
+import grails.web.mapping.UrlMappingsHolder
+import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Paths
 import io.swagger.v3.oas.models.tags.Tag
+import org.springframework.context.ApplicationContext
 import swagger.grails4.openapi.builder.OperationBuilder
 
 import java.lang.reflect.Method
 
+
 /**
  * Groovy annotation reader for OpenAPI
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
  */
+@Slf4j
 class Reader implements OpenApiReader {
     public static final String DEFAULT_MEDIA_TYPE_VALUE = "*/*"
     public static final String DEFAULT_DESCRIPTION = "default response"
 
     OpenAPIConfiguration config
     GrailsApplication application
+    ApplicationContext applicationContext
 
     private OpenAPI openAPI = new OpenAPI()
     private Components components = new Components()
@@ -42,11 +51,11 @@ class Reader implements OpenApiReader {
     }
 
     /**
-     * 读指定的类，生成 OpenAPI
+     * Read controller classes, build OpenAPI object.
      *
-     * @param classes 要读的类
-     * @param resources TODO 搞清楚是什么含义
-     * @return
+     * @param classes controller classes or any classes with @ApiDoc annotation
+     * @param resources TODO Understanding what it is
+     * @return openAPI object
      */
     @Override
     OpenAPI read(Set<Class<?>> classes, Map<String, Object> resources) {
@@ -57,16 +66,48 @@ class Reader implements OpenApiReader {
     }
 
     def processApiDocAnnotation(Class controllerClass) {
-        controllerClass.metaClass.metaMethods.each {
-            Method method = it.cachedMethod
-            def apiDoc = method.getAnnotation(ApiDoc)
-            // operation
-            // call the constructor of Closure(Object owner, Object thisObject)
-            Closure closure = apiDoc.operation() as Closure
-            def operationBuilder = new OperationBuilder()
-            def operation = closure.rehydrate(operationBuilder, openAPI, openAPI)
-            closure.resolveStrategy = DELEGATE_FIRST
-            operation()
+        log.debug("Scanning class: ${controllerClass.simpleName}")
+        // get all controller grails artifacts
+        def allControllerArtifacts = application.getArtefacts("Controller")
+        // find controller artifact with the same controller class
+        GrailsControllerClass controllerArtifact = allControllerArtifacts.find { it.clazz == controllerClass } as GrailsControllerClass
+        if (!controllerArtifact) {
+            log.error("No grails controller found for class ${controllerClass}")
+            return
         }
+        def urlMappingsHolder = applicationContext.getBean("grailsUrlMappingsHolder", UrlMappingsHolder)
+        urlMappingsHolder.urlMappings.each {
+            log.debug("url mapping: ${it}")
+        }
+        // iterate actions only
+        controllerArtifact.actions.each { String actionName ->
+            log.debug("Scanning action: ${actionName}")
+            // get java reflection method object
+            Method method = controllerClass.methods.find { it.name == actionName }
+            if (!method) {
+                log.error("No method found for action '${actionName}'!")
+                return
+            }
+            def apiDoc = method.getAnnotation(ApiDoc)
+            if (!apiDoc) {
+                return
+            }
+            // get url from controller and action
+
+            // process operation closure
+            // call the constructor of Closure(Object owner, Object thisObject)
+            def closureClass = apiDoc.operation()
+            if (closureClass) {
+                Closure operation = closureClass.newInstance(openAPI, openAPI)
+                def operationBuilder = new OperationBuilder(openAPI: openAPI)
+                operation.delegate = operationBuilder
+                operation.resolveStrategy = Closure.DELEGATE_FIRST
+                operation()
+            }
+        }
+    }
+
+    def processAction() {
+
     }
 }

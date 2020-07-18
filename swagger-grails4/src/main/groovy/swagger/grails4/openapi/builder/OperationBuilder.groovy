@@ -1,6 +1,6 @@
 package swagger.grails4.openapi.builder
 
-import io.swagger.v3.oas.models.OpenAPI
+
 import io.swagger.v3.oas.models.Operation
 
 /**
@@ -9,6 +9,7 @@ import io.swagger.v3.oas.models.Operation
  * Delegate object is OpenAPI.
  *
  * @see io.swagger.v3.oas.annotations.Operation
+ * @author bo.yang <bo.yang@telecwin.com>
  */
 class OperationBuilder implements AnnotationBuilder {
 
@@ -21,7 +22,7 @@ class OperationBuilder implements AnnotationBuilder {
     // List overrideElements = ["method"]
 
     OperationBuilder(){
-        annotationToProperties()
+        initPrimitiveElements()
     }
 
     /**

@@ -7,6 +7,8 @@ import java.lang.annotation.RetentionPolicy
 
 /**
  * The OpenAPI annotation in Groovy Closure style.
+ *
+ * @author bo.yang <bo.yang@telecwin.com>
  */
 @CompileDynamic
 @Retention(RetentionPolicy.RUNTIME)
@@ -33,8 +35,9 @@ import java.lang.annotation.RetentionPolicy
      * if additional fields are also defined, like description or externalDocs, the Tag will also be added to openAPI.tags
      * field</p>
      *
+     * reference: <a target="_new" href="https://github.com/OAI/OpenAPI-Specification/blob/3.0.1/versions/3.0.1.md#tagObject">Tag (OpenAPI specification)</a>
+     *
      * @see io.swagger.v3.oas.annotations.tags.Tag
-     * @see <a target="_new" href="https://github.com/OAI/OpenAPI-Specification/blob/3.0.1/versions/3.0.1.md#tagObject">Tag (OpenAPI specification)</a>
      */
     Class tag() default {}
     /**
