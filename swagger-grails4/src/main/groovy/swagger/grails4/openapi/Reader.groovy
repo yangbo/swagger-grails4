@@ -1,21 +1,18 @@
 package swagger.grails4.openapi
 
-
 import grails.core.GrailsApplication
 import grails.core.GrailsControllerClass
+import grails.web.mapping.UrlCreator
 import grails.web.mapping.UrlMappingsHolder
 import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
-import io.swagger.v3.oas.models.Components
-import io.swagger.v3.oas.models.OpenAPI
-import io.swagger.v3.oas.models.Paths
+import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.tags.Tag
 import org.springframework.context.ApplicationContext
 import swagger.grails4.openapi.builder.OperationBuilder
 
 import java.lang.reflect.Method
-
 
 /**
  * Groovy annotation reader for OpenAPI
@@ -79,6 +76,9 @@ class Reader implements OpenApiReader {
         urlMappingsHolder.urlMappings.each {
             log.debug("url mapping: ${it}")
         }
+        if (!openAPI.paths) {
+            openAPI.paths(new Paths())
+        }
         // iterate actions only
         controllerArtifact.actions.each { String actionName ->
             log.debug("Scanning action: ${actionName}")
@@ -92,18 +92,24 @@ class Reader implements OpenApiReader {
             if (!apiDoc) {
                 return
             }
-            // get url from controller and action
-
             // process operation closure
             // call the constructor of Closure(Object owner, Object thisObject)
+            def operationBuilder = new OperationBuilder(openAPI: openAPI)
             def closureClass = apiDoc.operation()
             if (closureClass) {
                 Closure operation = closureClass.newInstance(openAPI, openAPI)
-                def operationBuilder = new OperationBuilder(openAPI: openAPI)
                 operation.delegate = operationBuilder
                 operation.resolveStrategy = Closure.DELEGATE_FIRST
                 operation()
             }
+            Operation operation = operationBuilder.model
+            // get url from controller and action
+            UrlCreator urlCreator = urlMappingsHolder.getReverseMapping(controllerArtifact.logicalPropertyName, actionName,
+                    controllerArtifact.pluginName, [:])
+            String url = urlCreator.createURL([:], "utf-8")
+            def pathItem = new PathItem()
+            pathItem.operation(PathItem.HttpMethod.GET, operation)
+            openAPI.paths.addPathItem(url, pathItem)
         }
     }
 
