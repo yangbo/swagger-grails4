@@ -24,8 +24,7 @@ class OpenApiService {
      */
     def generateDocument() {
 
-        OpenAPIConfiguration config = new SwaggerConfiguration()
-                .openAPI(new OpenAPI().info(new Info().description("TEST INFO DESC")));
+        OpenAPIConfiguration config = new SwaggerConfiguration().openAPI(configOpenApi());
 
         OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
         ctx.setOpenApiScanner(new GrailsScanner(grailsApplication: grailsApplication))
@@ -33,5 +32,10 @@ class OpenApiService {
 
         OpenAPI openApi = ctx.read();
         openApi
+    }
+
+    OpenAPI configOpenApi() {
+        // TODO resolve config from groovy script or annotation
+        new OpenAPI().info(new Info().description("TEST INFO DESC"))
     }
 }
