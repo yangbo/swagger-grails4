@@ -10,6 +10,7 @@ import io.swagger.v3.oas.integration.api.OpenApiReader
 import io.swagger.v3.oas.models.*
 import io.swagger.v3.oas.models.tags.Tag
 import swagger.grails4.openapi.builder.OperationBuilder
+import swagger.grails4.openapi.builder.TagBuilder
 
 import java.lang.reflect.Method
 
@@ -78,6 +79,9 @@ class Reader implements OpenApiReader {
         if (!openAPI.paths) {
             openAPI.paths(new Paths())
         }
+        // Add global tags
+        Tag controllerTag = buildControllerDoc(controllerArtifact)
+
         // iterate actions only
         controllerArtifact.actions.each { String actionName ->
             log.debug("Scanning action: ${actionName}")
@@ -92,16 +96,9 @@ class Reader implements OpenApiReader {
                 return
             }
             // process operation closure
-            // call the constructor of Closure(Object owner, Object thisObject)
-            def operationBuilder = new OperationBuilder(openAPI: openAPI)
             def closureClass = apiDoc.operation()
-            if (closureClass) {
-                Closure operation = closureClass.newInstance(openAPI, openAPI) as Closure
-                operation.delegate = operationBuilder
-                operation.resolveStrategy = Closure.DELEGATE_FIRST
-                operation()
-            }
-            Operation operation = operationBuilder.model
+            def operation = processClosure(closureClass, OperationBuilder) as Operation
+            operation.addTagsItem(controllerTag.name)
             buildPathItem(operation, actionName, controllerArtifact, urlMappingsHolder)
         }
     }
@@ -111,6 +108,9 @@ class Reader implements OpenApiReader {
         // 1. UrlMapping rule
         // 2. Controller allowedMethods map
         // 3. default as GET
+
+        // And resolve operation tag from controller logical property name.
+        operation.tags([controllerArtifact.logicalPropertyName])
 
         // 1. from UrlMapping
         def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
@@ -141,5 +141,40 @@ class Reader implements OpenApiReader {
         def pathItem = new PathItem()
         pathItem.operation(httpMethod, operation)
         openAPI.paths.addPathItem(url, pathItem)
+    }
+
+    Tag buildControllerDoc(GrailsControllerClass grailsControllerClass) {
+        def tag = new Tag()
+        tag.name = grailsControllerClass.logicalPropertyName.capitalize()
+        if (!grailsControllerClass.actions) {
+            return tag
+        }
+        ApiDoc apiDocAnnotation = grailsControllerClass.clazz.getAnnotation(ApiDoc) as ApiDoc
+        if (!apiDocAnnotation) {
+            return tag
+        }
+        def tagClosure = apiDocAnnotation.tag()
+        if (tagClosure) {
+            def tagFromClosure = processClosure(tagClosure, TagBuilder) as Tag
+            // copy default name
+            if (!tagFromClosure.name){
+                tagFromClosure.name = tag.name
+            }
+            tag = tagFromClosure
+        }
+        openAPI.addTagsItem(tag)
+        tag
+    }
+
+    def processClosure(Class closureClass, Class builderClass) {
+        def builder = builderClass.newInstance(openAPI: openAPI)
+        if (closureClass) {
+            // call the constructor of Closure(Object owner, Object thisObject)
+            Closure closure = closureClass.newInstance(openAPI, openAPI) as Closure
+            closure.delegate = builder
+            closure.resolveStrategy = Closure.DELEGATE_FIRST
+            closure()
+        }
+        builder.model
     }
 }

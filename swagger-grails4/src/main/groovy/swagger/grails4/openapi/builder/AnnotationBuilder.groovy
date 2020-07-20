@@ -1,19 +1,17 @@
 package swagger.grails4.openapi.builder
 
 import io.swagger.v3.oas.models.OpenAPI
-
 import java.lang.reflect.Method
 
 /**
- * Extract properties from OpenAPI annotation.
+ * Provide some utility methods for annotation closure builders.
+ * Such as methods to extract properties from OpenAPI annotation.
  * <pre>
  * Require implementing class has below properties:
  * - "openApiAnnotation" property, related OpenAPI annotation class.
  * - "model" property, the OpenAPI model object.
- * - "overrideElements" property, contains annotation elements that need additional processing
- *   so they should be skipped from directly assigning and processed by a builder method.
- *   Used when there is no such annotation elements in property of models.
  * </pre>
+ * Require implementing class call initPrimitiveElements() in their constructor.
  *
  * @author bo.yang <bo.yang@telecwin.com>
  */

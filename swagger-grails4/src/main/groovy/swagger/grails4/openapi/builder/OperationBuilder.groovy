@@ -14,23 +14,13 @@ import io.swagger.v3.oas.models.Operation
 class OperationBuilder implements AnnotationBuilder {
 
     Operation model = new Operation()
-    static Class openApiAnnotationClass = io.swagger.v3.oas.annotations.Operation
     /**
-     * The annotation elements need specific process so they should be skipped from directly assign.
-     * Used when there is not such annotation elements in property in models.
+     * needed by AnnotationBuilder trait
      */
-    // List overrideElements = ["method"]
+    @SuppressWarnings("unused")
+    static Class openApiAnnotationClass = io.swagger.v3.oas.annotations.Operation
 
     OperationBuilder(){
         initPrimitiveElements()
-    }
-
-    /**
-     * Construct Paths/PathItem
-     *
-     * @param methodName
-     */
-    def method(String methodName) {
-
     }
 }

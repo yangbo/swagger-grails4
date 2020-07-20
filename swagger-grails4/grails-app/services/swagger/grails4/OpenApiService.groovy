@@ -29,12 +29,11 @@ class OpenApiService {
     def generateDocument() {
         OpenAPIConfiguration config = new SwaggerConfiguration().openAPI(configOpenApi())
         config.setReaderClass("swagger.grails4.openapi.Reader")
-
         OpenApiContext ctx = new GenericOpenApiContext().openApiConfiguration(config)
         ctx.setOpenApiScanner(new GrailsScanner(grailsApplication: grailsApplication))
         ctx.setOpenApiReader(new Reader(application: grailsApplication, config: config))
         ctx.init()
-        OpenAPI openAPI = ctx.read()
+        ctx.read()
     }
 
     /**
