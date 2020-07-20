@@ -109,9 +109,6 @@ class Reader implements OpenApiReader {
         // 2. Controller allowedMethods map
         // 3. default as GET
 
-        // And resolve operation tag from controller logical property name.
-        operation.tags([controllerArtifact.logicalPropertyName])
-
         // 1. from UrlMapping
         def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
             it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
@@ -157,7 +154,7 @@ class Reader implements OpenApiReader {
         if (tagClosure) {
             def tagFromClosure = processClosure(tagClosure, TagBuilder) as Tag
             // copy default name
-            if (!tagFromClosure.name){
+            if (!tagFromClosure.name) {
                 tagFromClosure.name = tag.name
             }
             tag = tagFromClosure
