@@ -9,7 +9,7 @@ import swagger.grails4.openapi.ApiDoc
  *
  * @author bo.yang <bo.yang@telecwin.com>
  */
-@ApiDoc(tag={
+@ApiDoc(tag = {
     name "OpenAPI v3 controller"
     description "The OpenAPI v3 api document controller"
 })
@@ -17,15 +17,19 @@ class OpenApiController {
 
     OpenApiService openApiService
 
-    @ApiDoc(operation={
+    @ApiDoc(operation = {
         summary "The OpenAPI API json/yaml document"
     })
     def document() {
         def doc = openApiService.generateDocument()
         def json = Json.pretty().writeValueAsString(doc)
-        render(contentType: MimeType.JSON, json)
+        render(contentType: MimeType.JSON, json, encoding: "UTF-8")
     }
 
+    /**
+     * Redirect to /static/api/doc.html
+     */
     def index() {
+        redirect(uri: "/static/api/doc.html")
     }
 }
