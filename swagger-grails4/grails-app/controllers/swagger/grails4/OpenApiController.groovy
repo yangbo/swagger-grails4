@@ -23,7 +23,7 @@ class OpenApiController {
     def document() {
         def doc = openApiService.generateDocument()
         def json = Json.pretty().writeValueAsString(doc)
-        render(contentType: MimeType.JSON, json, encoding: "UTF-8")
+        render(text: json, contentType: "application/json", encoding: "UTF-8")
     }
 
     /**
