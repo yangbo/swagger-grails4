@@ -16,3 +16,4 @@ gradle-app.setting
 .gradle
 
 /.idea/
+/swagger-grails4/src/swagger-ui/node_modules/

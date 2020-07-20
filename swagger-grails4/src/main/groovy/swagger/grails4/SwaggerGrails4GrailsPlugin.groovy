@@ -18,32 +18,30 @@ class SwaggerGrails4GrailsPlugin extends Plugin {
 
     // TODO Fill in these fields
     def title = "Swagger Grails4" // Headline display name of the plugin
-    def author = "Your name"
-    def authorEmail = ""
-    def description = '''\
-Brief summary/description of the plugin.
-'''
+    def author = "Bob Yang"
+    def authorEmail = "bo.yang@telecwin.com"
+    def description = '''OpenAPI v3 document plugin for grails v4.'''
     def profiles = ['web']
 
     // URL to the plugin's documentation
-    def documentation = "http://grails.org/plugin/swagger-grails4"
+    def documentation = "https://github.com/yangbo/swagger-grails4"
 
     // Extra (optional) plugin metadata
 
     // License: one of 'APACHE', 'GPL2', 'GPL3'
-//    def license = "APACHE"
+    def license = "MIT"
 
     // Details of company behind the plugin (if there is one)
-//    def organization = [ name: "My Company", url: "http://www.my-company.com/" ]
+    def organization = [ name: "Telecwin", url: "https://telecwin.com/" ]
 
     // Any additional developers beyond the author specified above.
-//    def developers = [ [ name: "Joe Bloggs", email: "joe@bloggs.net" ]]
+    // def developers = [ [ name: "Bob Yang", email: "bo.yang@telecwin.com" ]]
 
     // Location of the plugin's issue tracker.
 //    def issueManagement = [ system: "JIRA", url: "http://jira.grails.org/browse/GPMYPLUGIN" ]
 
     // Online location of the plugin's browseable source code.
-//    def scm = [ url: "http://svn.codehaus.org/grails-plugins/" ]
+    def scm = [ url: "https://github.com/yangbo/swagger-grails4" ]
 
     Closure doWithSpring() { {->
             // TODO Implement runtime spring config (optional)

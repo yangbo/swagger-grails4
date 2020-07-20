@@ -10,4 +10,4 @@
 rootProject.name = 'swagger-grails4-plugin'
 
 include "swagger-grails4"
-include "swagger-grails4-sasmple"
+include "swagger-grails4-samples"

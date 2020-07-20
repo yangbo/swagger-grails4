@@ -18,11 +18,14 @@ class OpenApiController {
     OpenApiService openApiService
 
     @ApiDoc(operation={
-        summary "The Index of OpenAPI documents"
+        summary "The OpenAPI API json/yaml document"
     })
-    def index() {
+    def document() {
         def doc = openApiService.generateDocument()
         def json = Json.pretty().writeValueAsString(doc)
         render(contentType: MimeType.JSON, json)
+    }
+
+    def index() {
     }
 }

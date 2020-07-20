@@ -86,15 +86,15 @@ tasks.withType(GroovyCompile) {
 bootJar.enabled = false
 grailsPublish {
     // TODO: Provide values here
-    user = 'user'
+    user = 'yangbo'
     key = 'key'
-    githubSlug = 'foo/bar'
+    githubSlug = 'yangbo/swagger-grails4-plugin'
     license {
-        name = 'Apache-2.0'
+        name = 'MIT'
     }
-    title = "My Plugin"
-    desc = "Full plugin description"
-    developers = [johndoe:"John Doe"]
+    title = "OpenAPIv3(Swagger) plugin"
+    desc = "OpenAPI v3 plugin for grails4"
+    developers = [bobyang:"Bob Yang"]
 }
 
 
