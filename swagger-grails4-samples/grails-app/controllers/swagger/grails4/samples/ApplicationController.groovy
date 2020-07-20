@@ -13,7 +13,8 @@ class ApplicationController implements PluginManagerAware {
     GrailsPluginManager pluginManager
 
     @ApiDoc(operation = {
-        summary "This is the Sample Application api. 这是一个示例API应用"
+        summary "List Application Information"
+        description "列出应用的信息，包括controller、plugin、artefacts等"
     })
     def index() {
         [grailsApplication: grailsApplication, pluginManager: pluginManager]
