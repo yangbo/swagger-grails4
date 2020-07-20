@@ -96,23 +96,50 @@ class Reader implements OpenApiReader {
             def operationBuilder = new OperationBuilder(openAPI: openAPI)
             def closureClass = apiDoc.operation()
             if (closureClass) {
-                Closure operation = closureClass.newInstance(openAPI, openAPI)
+                Closure operation = closureClass.newInstance(openAPI, openAPI) as Closure
                 operation.delegate = operationBuilder
                 operation.resolveStrategy = Closure.DELEGATE_FIRST
                 operation()
             }
             Operation operation = operationBuilder.model
-            // get url from controller and action
-            UrlCreator urlCreator = urlMappingsHolder.getReverseMapping(controllerArtifact.logicalPropertyName, actionName,
-                    controllerArtifact.pluginName, [:])
-            String url = urlCreator.createURL([:], "utf-8")
-            def pathItem = new PathItem()
-            pathItem.operation(PathItem.HttpMethod.GET, operation)
-            openAPI.paths.addPathItem(url, pathItem)
+            buildPathItem(operation, actionName, controllerArtifact, urlMappingsHolder)
         }
     }
 
-    def processAction() {
+    def buildPathItem(Operation operation, String actionName, GrailsControllerClass controllerArtifact, UrlMappingsHolder urlMappingsHolder) {
+        // Resolve http method, url from:
+        // 1. UrlMapping rule
+        // 2. Controller allowedMethods map
+        // 3. default as GET
 
+        // 1. from UrlMapping
+        def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
+            it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
+        }
+        PathItem.HttpMethod httpMethod = PathItem.HttpMethod.GET
+        String url = ""
+        if (urlMappingOfAction) {
+            String httpMethodName = urlMappingOfAction.httpMethod.toUpperCase()
+            // http method of grails url-mapping rule is '*' or not in PathItem.HttpMethod enum
+            // then we use GET method
+            if (httpMethodName == "*" || !PathItem.HttpMethod.values()
+                    .collect { it.name() }.contains(httpMethodName)) {
+                httpMethodName = "GET"
+            }
+            httpMethod = PathItem.HttpMethod.valueOf(httpMethodName)
+            url = urlMappingOfAction.urlData.urlPattern
+        } else {
+            // 2. from controller
+            def allowedMethods = controllerArtifact.getPropertyValue("allowedMethods")
+            if (allowedMethods && allowedMethods[actionName]) {
+                httpMethod = PathItem.HttpMethod.valueOf(allowedMethods[actionName] as String)
+            }
+            UrlCreator urlCreator = urlMappingsHolder.getReverseMapping(controllerArtifact.logicalPropertyName, actionName,
+                    controllerArtifact.pluginName, [:])
+            url = urlCreator.createURL([:], "utf-8")
+        }
+        def pathItem = new PathItem()
+        pathItem.operation(httpMethod, operation)
+        openAPI.paths.addPathItem(url, pathItem)
     }
 }
