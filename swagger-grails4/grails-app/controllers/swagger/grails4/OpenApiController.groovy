@@ -16,7 +16,8 @@ class OpenApiController {
     OpenApiService openApiService
 
     @ApiDoc(operation = {
-        summary "The OpenAPI API json/yaml document"
+        summary "OpenApi json documents"
+        description "The OpenAPI API v3 json/yaml documents"
     })
     def document() {
         def doc = openApiService.generateDocument()

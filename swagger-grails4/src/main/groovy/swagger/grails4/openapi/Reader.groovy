@@ -8,7 +8,10 @@ import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
 import io.swagger.v3.oas.models.*
+import io.swagger.v3.oas.models.media.Schema
+import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.tags.Tag
+import swagger.grails4.openapi.builder.AnnotationBuilder
 import swagger.grails4.openapi.builder.OperationBuilder
 import swagger.grails4.openapi.builder.TagBuilder
 
@@ -97,7 +100,11 @@ class Reader implements OpenApiReader {
             }
             // process operation closure
             def closureClass = apiDoc.operation()
-            def operation = processClosure(closureClass, OperationBuilder) as Operation
+            def operationBuilder = new OperationBuilder(openAPI: openAPI)
+            // build parameters into model
+            buildParameters(operationBuilder.model, method, controllerClass)
+            // process operation closure that can override parameters information
+            def operation = processClosure(closureClass, operationBuilder) as Operation
             operation.addTagsItem(controllerTag.name)
             buildPathItem(operation, actionName, controllerArtifact, urlMappingsHolder)
         }
@@ -152,7 +159,7 @@ class Reader implements OpenApiReader {
         }
         def tagClosure = apiDocAnnotation.tag()
         if (tagClosure) {
-            def tagFromClosure = processClosure(tagClosure, TagBuilder) as Tag
+            def tagFromClosure = processClosure(tagClosure, new TagBuilder()) as Tag
             // copy default name
             if (!tagFromClosure.name) {
                 tagFromClosure.name = tag.name
@@ -163,8 +170,8 @@ class Reader implements OpenApiReader {
         tag
     }
 
-    def processClosure(Class closureClass, Class builderClass) {
-        def builder = builderClass.newInstance(openAPI: openAPI)
+    def processClosure(Class closureClass, AnnotationBuilder builder) {
+        //def builder = builderClass.newInstance(openAPI: openAPI)
         if (closureClass) {
             // call the constructor of Closure(Object owner, Object thisObject)
             Closure closure = closureClass.newInstance(openAPI, openAPI) as Closure
@@ -173,5 +180,18 @@ class Reader implements OpenApiReader {
             closure()
         }
         builder.model
+    }
+
+    void buildParameters(Operation operation, Method method, Class controllerClass) {
+        if (!operation.parameters){
+            operation.parameters = []
+        }
+        method.parameters.each {
+            // automatically build primitive type schema
+            if (it.type.isPrimitive() || it.type in [String, Number]) {
+                operation.parameters << new Parameter(name: it.name,
+                        schema: new Schema(type: it.type.simpleName.toLowerCase()))
+            }
+        }
     }
 }

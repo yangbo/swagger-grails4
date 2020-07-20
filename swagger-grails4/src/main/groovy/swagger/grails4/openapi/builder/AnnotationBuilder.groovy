@@ -55,7 +55,7 @@ trait AnnotationBuilder {
         }
     }
 
-    def isPrimitiveElement(elementType) {
+    static def isPrimitiveElement(elementType) {
         switch (elementType) {
             case String:
             case String[]:

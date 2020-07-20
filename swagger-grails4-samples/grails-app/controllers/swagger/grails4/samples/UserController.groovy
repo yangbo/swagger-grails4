@@ -5,15 +5,22 @@ import grails.rest.*
 import grails.converters.*
 import swagger.grails4.openapi.ApiDoc
 
-@ApiDoc({
-    description "用户相关API"
+@ApiDoc(tag = {
+    description "User API"
 })
 class UserController {
 	static responseFormats = ['json', 'xml']
 
     @ApiDoc(operation = {
-        summary "列出用户"
-        description "列出用户，可以带查询条件、翻页参数"
+        summary "List Users"
+        description "List users, support query and paging parameters"
     })
     def index() { }
+
+    @ApiDoc(operation = {
+        summary "Login"
+        description "Login with user name and password"
+    })
+    def login(String username, String password) {
+    }
 }
