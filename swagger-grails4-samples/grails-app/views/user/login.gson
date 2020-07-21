@@ -1,0 +1,8 @@
+model {
+    String username
+    String password
+}
+json {
+    username username
+    password password
+}

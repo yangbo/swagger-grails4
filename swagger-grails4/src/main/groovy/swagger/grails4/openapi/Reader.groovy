@@ -22,25 +22,11 @@ import java.lang.reflect.Method
  */
 @Slf4j
 class Reader implements OpenApiReader {
-    public static final String DEFAULT_MEDIA_TYPE_VALUE = "*/*"
-    public static final String DEFAULT_DESCRIPTION = "default response"
 
     OpenAPIConfiguration config
     GrailsApplication application
 
     private OpenAPI openAPI = new OpenAPI()
-    private Components components = new Components()
-    private Paths paths = new Paths()
-    private Set<Tag> openApiTags = new LinkedHashSet<>()
-
-    private static final String GET_METHOD = "get";
-    private static final String POST_METHOD = "post";
-    private static final String PUT_METHOD = "put";
-    private static final String DELETE_METHOD = "delete";
-    private static final String PATCH_METHOD = "patch";
-    private static final String TRACE_METHOD = "trace";
-    private static final String HEAD_METHOD = "head";
-    private static final String OPTIONS_METHOD = "options";
 
     @Override
     void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
@@ -59,6 +45,8 @@ class Reader implements OpenApiReader {
         classes.each {
             processApiDocAnnotation(it)
         }
+        // sort controller by tag name
+        openAPI.tags = openAPI.tags.sort { it.name }
         openAPI
     }
 
