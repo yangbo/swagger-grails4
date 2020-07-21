@@ -8,8 +8,6 @@ import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
 import io.swagger.v3.oas.models.*
-import io.swagger.v3.oas.models.media.Schema
-import io.swagger.v3.oas.models.parameters.Parameter
 import io.swagger.v3.oas.models.tags.Tag
 import swagger.grails4.openapi.builder.AnnotationBuilder
 import swagger.grails4.openapi.builder.OperationBuilder
@@ -100,9 +98,7 @@ class Reader implements OpenApiReader {
             }
             // process operation closure
             def closureClass = apiDoc.operation()
-            def operationBuilder = new OperationBuilder(openAPI: openAPI)
-            // build parameters into model
-            buildParameters(operationBuilder.model, method, controllerClass)
+            def operationBuilder = new OperationBuilder(reader: this)
             // process operation closure that can override parameters information
             def operation = processClosure(closureClass, operationBuilder) as Operation
             operation.addTagsItem(controllerTag.name)
@@ -159,7 +155,7 @@ class Reader implements OpenApiReader {
         }
         def tagClosure = apiDocAnnotation.tag()
         if (tagClosure) {
-            def tagFromClosure = processClosure(tagClosure, new TagBuilder()) as Tag
+            def tagFromClosure = processClosure(tagClosure, new TagBuilder(reader: this)) as Tag
             // copy default name
             if (!tagFromClosure.name) {
                 tagFromClosure.name = tag.name
@@ -180,18 +176,5 @@ class Reader implements OpenApiReader {
             closure()
         }
         builder.model
-    }
-
-    void buildParameters(Operation operation, Method method, Class controllerClass) {
-        if (!operation.parameters){
-            operation.parameters = []
-        }
-        method.parameters.each {
-            // automatically build primitive type schema
-            if (it.type.isPrimitive() || it.type in [String, Number]) {
-                operation.parameters << new Parameter(name: it.name,
-                        schema: new Schema(type: it.type.simpleName.toLowerCase()))
-            }
-        }
     }
 }

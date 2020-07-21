@@ -23,4 +23,17 @@ class OperationBuilder implements AnnotationBuilder {
     OperationBuilder(){
         initPrimitiveElements()
     }
+
+    def parameters(List<Closure> parameterClosures) {
+        if (!model.parameters) {
+            model.parameters = []
+        }
+        parameterClosures.each { closure ->
+            ParameterBuilder builder = new ParameterBuilder(reader: reader)
+            def parameterClosure = closure.rehydrate(builder, this, this)
+            parameterClosure.resolveStrategy = Closure.DELEGATE_ONLY
+            parameterClosure()
+            model.parameters << builder.model
+        }
+    }
 }

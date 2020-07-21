@@ -38,9 +38,10 @@ class ReaderTest extends Specification implements AutowiredTest {
         def pathMap = openAPI.paths.find {
             it.value.post?.summary == "Login"
         }
-        pathMap.value.parameters.size() > 0
-        pathMap.value.parameters[0].name == "username"
-        pathMap.value.parameters[1].name == "password"
+        def operation = pathMap.value.post
+        operation.parameters.size() > 0
+        operation.parameters[0].name == "username"
+        operation.parameters[1].name == "password"
     }
 
     /**

@@ -1,6 +1,6 @@
 package swagger.grails4.openapi.builder
 
-import io.swagger.v3.oas.models.OpenAPI
+
 import java.lang.reflect.Method
 
 /**
@@ -18,9 +18,9 @@ import java.lang.reflect.Method
 trait AnnotationBuilder {
 
     /**
-     * The OpenAPI object to build
+     * The reader that use these builders
      */
-    OpenAPI openAPI
+    swagger.grails4.openapi.Reader reader
 
     private List systemMethods = ["equals", "toString", "hashCode", "annotationType"]
 
@@ -74,7 +74,10 @@ trait AnnotationBuilder {
      * @param name method name
      * @param args method arguments
      */
-    def methodMissing(String name, args) {
+    def methodMissing(String name, Object args) {
+        if (!primitiveElements) {
+            initPrimitiveElements()
+        }
         // assign primitive element value to model directly
         if (name in primitiveElements) {
             this.model[name] = args[0]
