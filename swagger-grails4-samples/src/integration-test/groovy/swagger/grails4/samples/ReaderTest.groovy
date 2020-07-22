@@ -4,7 +4,6 @@ import grails.core.GrailsApplication
 import grails.testing.mixin.integration.Integration
 import grails.testing.spring.AutowiredTest
 import io.swagger.v3.oas.integration.SwaggerConfiguration
-import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import spock.lang.Specification
@@ -50,5 +49,19 @@ class ReaderTest extends Specification implements AutowiredTest {
      */
     OpenAPI configOpenApi() {
         new OpenAPI().info(new Info().description("TEST INFO DESC"))
+    }
+
+    def "Test build type"() {
+        when:
+        byte[] array = new byte[0]
+        def list = []
+        def map = [:]
+        then:
+        Reader.buildType(int).type == "integer"
+        Reader.buildType(String).type == "string"
+        Reader.buildType(list.class).type == "array"
+        Reader.buildType(array.class).type == "array"
+        Reader.buildType(map.getClass()).type == "object"
+        Reader.buildType(UserCommand).type == "object"
     }
 }

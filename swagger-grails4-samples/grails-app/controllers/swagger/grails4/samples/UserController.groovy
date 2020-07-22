@@ -33,4 +33,11 @@ class UserController {
         log.debug("$username, $password")
         [username: username, password: password]
     }
+
+    @ApiDoc(operation = {
+        summary "Create User"
+        description "Create a new user"
+    })
+    def createUser(UserCommand command) {
+    }
 }
