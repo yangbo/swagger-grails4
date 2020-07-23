@@ -219,18 +219,26 @@ class Reader implements OpenApiReader {
                 case "clazz":
                     return
             }
-            propertiesMap[field.name] = buildSchema(field.type)
+            def fieldSchema = buildSchema(field.type)
+            fieldSchema.description = field.getAnnotation(ApiDoc)?.value()
+            propertiesMap[field.name] = fieldSchema
         }
         return propertiesMap
     }
 
+    /**
+     * Build Schema from command class or domain class
+     * @param aClass command class, domain class
+     * @return OAS Schema object
+     */
     Schema buildSchema(Class aClass) {
         TypeAndFormat typeAndFormat = buildType(aClass)
         String name = aClass.canonicalName
         def schema = new Schema(
                 name: name,
                 type: typeAndFormat.type,
-                format: typeAndFormat.format
+                format: typeAndFormat.format,
+                description: buildSchemaDescription(aClass)
         )
         switch (typeAndFormat.type) {
             case "object":
@@ -302,6 +310,11 @@ class Reader implements OpenApiReader {
 
     static boolean isCommandClass(Class<?> aClass) {
         Validateable.isAssignableFrom aClass
+    }
+
+    static String buildSchemaDescription(Class aClass) {
+        ApiDoc apiDocAnnotation = aClass.getAnnotation(ApiDoc) as ApiDoc
+        apiDocAnnotation?.value()
     }
 
     /**

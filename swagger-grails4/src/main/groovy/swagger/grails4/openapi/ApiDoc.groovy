@@ -14,9 +14,10 @@ import java.lang.annotation.RetentionPolicy
 @Retention(RetentionPolicy.RUNTIME)
 @interface ApiDoc {
     /**
-     * alias of operation
+     * place-holder for any place that need a string content.
+     * Used in Command object field description annotation.
      */
-    Class value() default {}
+    String value() default ""
     /**
      * To populate OpenAPI Object fields info, tags, servers, security and externalDocs.
      * @see io.swagger.v3.oas.annotations.OpenAPIDefinition
