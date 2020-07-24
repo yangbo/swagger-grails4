@@ -1,6 +1,6 @@
 package swagger.grails4.openapi
 
-import groovy.transform.CompileDynamic
+import org.codehaus.groovy.transform.GroovyASTTransformationClass
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -10,8 +10,8 @@ import java.lang.annotation.RetentionPolicy
  *
  * @author bo.yang <bo.yang@telecwin.com>
  */
-@CompileDynamic
 @Retention(RetentionPolicy.RUNTIME)
+@GroovyASTTransformationClass(["swagger.grails4.compiler.ApiDocTransformer"])
 @interface ApiDoc {
     /**
      * place-holder for any place that need a string content.

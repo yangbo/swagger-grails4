@@ -4,9 +4,9 @@ import grails.core.GrailsApplication
 import grails.plugins.*
 import swagger.grails4.openapi.ApiDoc
 
-@ApiDoc(tag = {
-    description "Application Info"
-})
+//@ApiDoc(tag = {
+//    description "Application Info"
+//})
 class ApplicationController implements PluginManagerAware {
 
     GrailsApplication grailsApplication

@@ -2,9 +2,9 @@ package swagger.grails4.samples
 
 import swagger.grails4.openapi.ApiDoc
 
-@ApiDoc(tag = {
-    description "User API"
-})
+//@ApiDoc(tag = {
+//    description "User API"
+//})
 class UserController {
     static responseFormats = ['json', 'xml']
 
