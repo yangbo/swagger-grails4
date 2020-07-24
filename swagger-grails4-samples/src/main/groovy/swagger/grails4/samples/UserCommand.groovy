@@ -3,7 +3,7 @@ package swagger.grails4.samples
 import grails.validation.Validateable
 import swagger.grails4.openapi.ApiDoc
 
-//@ApiDoc("The command contains User properties")
+@ApiDoc("The command contains User properties")
 class UserCommand implements Validateable{
     /**
      * The name of user in comments.
@@ -14,4 +14,8 @@ class UserCommand implements Validateable{
     String password
     @ApiDoc("The avatar url of user")
     String avatarUrl
+    /**
+     * Area of user
+     */
+    String area
 }

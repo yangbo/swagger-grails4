@@ -220,7 +220,10 @@ class Reader implements OpenApiReader {
                     return
             }
             def fieldSchema = buildSchema(field.type)
-            fieldSchema.description = field.getAnnotation(ApiDoc)?.value()
+            // @ApiDoc prefer over @ApiDocComment
+            def apiDocAnn = field.getAnnotation(ApiDoc)
+            def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
+            fieldSchema.description = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
             propertiesMap[field.name] = fieldSchema
         }
         return propertiesMap
