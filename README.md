@@ -20,3 +20,4 @@ in sales@telecwin.com.
 - Automatically extract comments of fields to build descriptions of properties. 
 - Automatically create description of values of Enum, if there is an id property then show id value in descriptions.
 - Automatically create element Schema of array. 
+- TODO: Can handle inherited trait properties and plain class properties.
