@@ -47,7 +47,7 @@ class ReaderTest extends Specification implements AutowiredTest {
         when:
         OpenAPI openAPI = reader.read([UserController] as Set, [:])
         def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
-        then: "Extract only one comment block of star comment block"
+        then:
         command.properties["onlyOneCommentBlock"].description == "Only One Comment Block Should be extracted."
     }
 
@@ -81,5 +81,14 @@ class ReaderTest extends Specification implements AutowiredTest {
         Reader.buildType(array.class).type == "array"
         Reader.buildType(map.getClass()).type == "object"
         Reader.buildType(UserCommand).type == "object"
+    }
+
+    def "Test cycle reference"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        then:
+        def houses = command.properties["houses"]
+        println houses
     }
 }

@@ -6,6 +6,7 @@ import grails.validation.Validateable
 import grails.web.Action
 import grails.web.mapping.UrlCreator
 import grails.web.mapping.UrlMappingsHolder
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration
 import io.swagger.v3.oas.integration.api.OpenApiReader
@@ -43,6 +44,7 @@ class Reader implements OpenApiReader {
 
     private OpenAPI openAPI = new OpenAPI()
 
+    @CompileStatic
     @Override
     void setConfiguration(OpenAPIConfiguration openApiConfiguration) {
         this.config = openApiConfiguration
@@ -56,6 +58,7 @@ class Reader implements OpenApiReader {
      * @return openAPI object
      */
     @Override
+    @CompileStatic
     OpenAPI read(Set<Class<?>> classes, Map<String, Object> resources) {
         classes.each {
             processApiDocAnnotation(it)
@@ -65,6 +68,7 @@ class Reader implements OpenApiReader {
         openAPI
     }
 
+    @CompileStatic
     def processApiDocAnnotation(Class controllerClass) {
         log.debug("Scanning class: ${controllerClass.simpleName}")
         // get all controller grails artifacts
@@ -111,6 +115,7 @@ class Reader implements OpenApiReader {
         }
     }
 
+    @CompileStatic
     def buildPathItem(Operation operation, String actionName, GrailsControllerClass controllerArtifact, UrlMappingsHolder urlMappingsHolder) {
         // Resolve http method, url from:
         // 1. UrlMapping rule
@@ -149,6 +154,7 @@ class Reader implements OpenApiReader {
         openAPI.paths.addPathItem(url, pathItem)
     }
 
+    @CompileStatic
     Tag buildControllerDoc(GrailsControllerClass grailsControllerClass) {
         def tag = new Tag()
         tag.name = grailsControllerClass.logicalPropertyName.capitalize()
@@ -190,6 +196,7 @@ class Reader implements OpenApiReader {
      * @param actionName name of the action to build
      * @param grailsControllerClass action belonged grails controller class
      */
+    @CompileStatic
     RequestBody buildActionCommandParameters(String actionName, GrailsControllerClass grailsControllerClass) {
         Class plainClass = grailsControllerClass.clazz
         def actionMethods = plainClass.methods.find { it.name == actionName && it.getAnnotation(Action) }
@@ -202,7 +209,7 @@ class Reader implements OpenApiReader {
                 return null
             }
             Schema schema = buildSchema(commandClass)
-            def ref = "#/components/schemas/${schema.name}"
+            def ref = getRef(schema)
             Content content = new Content()
             content.addMediaType(JSON_MIME, new MediaType(schema: new Schema($ref: ref)))
             content.addMediaType(DEFAULT_MIME, new MediaType(schema: new Schema($ref: ref)))
@@ -212,6 +219,12 @@ class Reader implements OpenApiReader {
         }
     }
 
+    @CompileStatic
+    static String getRef(Schema schema) {
+        "#/components/schemas/${schema.name}"
+    }
+
+    @CompileStatic
     Map<String, Schema> buildClassProperties(Class<?> aClass) {
         def propertiesMap = [:] as Map<String, Schema>
         aClass.declaredFields.each { field ->
@@ -224,19 +237,21 @@ class Reader implements OpenApiReader {
                 case "mappings":
                     return
             }
-            def fieldSchema = buildSchema(field.type, field.genericType)
-            // @ApiDoc prefer over @ApiDocComment
-            def apiDocAnn = field.getAnnotation(ApiDoc)
-            def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
-            def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
-            comments = comments ?: ""
-            if (fieldSchema.description){
-                fieldSchema.description = comments + " \n" + fieldSchema.description
-            }else{
-                fieldSchema.description = comments
+            Schema schema = getSchemaFromOpenAPI(field.type)
+            if (!schema) {
+                schema = buildSchema(field.type, field.genericType)
+                // @ApiDoc prefer over @ApiDocComment
+                def apiDocAnn = field.getAnnotation(ApiDoc)
+                def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
+                def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
+                comments = comments ?: ""
+                if (schema.description) {
+                    schema.description = comments + " \n" + schema.description
+                } else {
+                    schema.description = comments
+                }
             }
-
-            propertiesMap[field.name] = fieldSchema
+            propertiesMap[field.name] = schema
         }
         return propertiesMap
     }
@@ -249,15 +264,15 @@ class Reader implements OpenApiReader {
      */
     Schema buildSchema(Class aClass, Type genericType = null) {
         TypeAndFormat typeAndFormat = buildType(aClass)
-        String name = aClass.canonicalName
         // check exists schema, avoid infinite loop
-        Schema schema = getSchemaFromOpenAPI(name)
+        Schema schema = getSchemaFromOpenAPI(aClass)
         if (schema) {
             return schema
         }
-        Map args = [name: name,
-                    type: typeAndFormat.type,
-                    format: typeAndFormat.format,
+        String name = schemaNameFromClass(aClass)
+        Map args = [name       : name,
+                    type       : typeAndFormat.type,
+                    format     : typeAndFormat.format,
                     description: buildSchemaDescription(aClass)]
         schema = typeAndFormat.type == "array" ? new ArraySchema(args) : new Schema(args)
         if (typeAndFormat.type in ["object", "enum"]) {
@@ -271,9 +286,9 @@ class Reader implements OpenApiReader {
                 // try to get array element type
                 Class itemClass = aClass.componentType
                 // extract item type for collections
-                if (!itemClass && Collection.isAssignableFrom(aClass)  && genericType instanceof ParameterizedType) {
+                if (!itemClass && Collection.isAssignableFrom(aClass) && genericType instanceof ParameterizedType) {
                     itemClass = genericType.actualTypeArguments[0] as Class
-                }else{
+                } else {
                     itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
@@ -292,6 +307,7 @@ class Reader implements OpenApiReader {
     /**
      * Build OASv3 type and format from class.
      */
+    @CompileStatic
     static TypeAndFormat buildType(Class aClass) {
         TypeAndFormat typeAndFormat = new TypeAndFormat()
         switch (aClass) {
@@ -345,17 +361,33 @@ class Reader implements OpenApiReader {
         return typeAndFormat
     }
 
+    @CompileStatic
     static boolean isCommandClass(Class<?> aClass) {
         Validateable.isAssignableFrom aClass
     }
 
+    @CompileStatic
     static String buildSchemaDescription(Class aClass) {
         ApiDoc apiDocAnnotation = aClass.getAnnotation(ApiDoc) as ApiDoc
         apiDocAnnotation?.value() ?: ""
     }
 
-    Schema getSchemaFromOpenAPI(String name) {
-        openAPI.components?.getSchemas()?.get(name)
+    /**
+     * Get a clone schema from openApi
+     * @param aClass
+     * @return
+     */
+    @CompileStatic
+    Schema getSchemaFromOpenAPI(Class aClass) {
+        def name = schemaNameFromClass(aClass)
+        def schema = openAPI.components?.getSchemas()?.get(name)
+        if (schema) {
+            schema = cloneSchema(schema)
+            schema.$ref = getRef(schema)
+            // remove properties to prevent cycle referencing
+            schema.properties = [:]
+        }
+        schema
     }
 
     /**
@@ -388,9 +420,30 @@ class Reader implements OpenApiReader {
         schema.description = builder.toString()
     }
 
+    @CompileStatic
+    static Schema cloneSchema(Schema schema) {
+        Schema clone = new Schema()
+        schema.metaClass.properties.each { prop ->
+            // skip read-only property
+            def setMethod = Schema.methods.find {
+                it.name == "set${prop.name.capitalize()}"
+            }
+            if (setMethod) {
+                clone[prop.name] = schema[prop.name]
+            }
+        }
+        clone
+    }
+
+    @CompileStatic
+    static String schemaNameFromClass(Class aClass) {
+        aClass.canonicalName
+    }
+
     /**
      * According to the https://swagger.io/docs/specification/data-models/data-types/
      */
+    @CompileStatic
     static class TypeAndFormat {
         String type = "object"
         String format = ""

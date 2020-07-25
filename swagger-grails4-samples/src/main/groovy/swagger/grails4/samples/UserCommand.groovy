@@ -32,4 +32,9 @@ class UserCommand implements Validateable{
      * Test List property
      */
     List<String> listProperty
+
+    /**
+     * My Houses
+     */
+    List<House> houses
 }
