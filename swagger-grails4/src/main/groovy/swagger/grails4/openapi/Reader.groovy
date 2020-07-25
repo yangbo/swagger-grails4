@@ -27,6 +27,7 @@ import swagger.grails4.openapi.builder.TagBuilder
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.sql.Date
 
 /**
  * Groovy annotation reader for OpenAPI
@@ -234,7 +235,9 @@ class Reader implements OpenApiReader {
                 case "metaClass":
                 case "clazz":
                 case "constraints":
-                case "mappings":
+                case "mapping":
+                case "log":
+                case "logger":
                     return
             }
             Schema schema = getSchemaFromOpenAPI(field.type)
@@ -353,6 +356,10 @@ class Reader implements OpenApiReader {
                 break
             case Enum:
                 typeAndFormat.type = "enum"
+                break
+            case Date:
+                typeAndFormat.type = "string"
+                typeAndFormat.format = "date-time"
                 break
             default:
                 typeAndFormat.type = "object"
