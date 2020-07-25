@@ -222,7 +222,8 @@ class Reader implements OpenApiReader {
             // @ApiDoc prefer over @ApiDocComment
             def apiDocAnn = field.getAnnotation(ApiDoc)
             def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
-            fieldSchema.description = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
+            def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
+            fieldSchema.description = comments + (comments ? ". " : "") + fieldSchema.description
             propertiesMap[field.name] = fieldSchema
         }
         return propertiesMap
@@ -347,15 +348,19 @@ class Reader implements OpenApiReader {
 
     static void buildEnumDescription(Class aClass, Schema schema) {
         StringBuilder builder = new StringBuilder(schema.description)
-        if (!schema.description.endsWith(".")){
+        if (schema?.description?.trim() && !schema.description.endsWith(".")){
             builder.append(". ")
         }
-        aClass.values()?.each {
+        aClass.values()?.eachWithIndex { enumValue, idx ->
             String idPart = ""
-            if (it.hasProperty("id")){
-                idPart = "(${it.id})"
+            if (enumValue.hasProperty("id")){
+                idPart = "(${enumValue.id})"
             }
-            builder.append("${it.name()}${idPart}")
+            // append ", " if idx > 0
+            if (idx > 0) {
+                builder.append(", ")
+            }
+            builder.append("${enumValue.name()}${idPart}")
         }
         schema.description = builder.toString()
     }
