@@ -80,12 +80,20 @@ class ApiDocTransformer extends AbstractASTTransformation {
         return srcBuffer
     }
     /**
-     * remove /&#42;*, *, &#42;/, // , comment marks and leading blanks
+     * remove /&#42;*, *, &#42;/, // , comment marks and leading blanks.
+     * Extract the last one star comment block.
      */
     static String cleanComment(String snippet) {
         if (!snippet) {
             return ""
         }
+        def blockPattern = ~$/(?s)\s*(/\*+.*?\*/)\s*/$
+        def matcher = blockPattern.matcher(snippet)
+        String lastFound = ""
+        while(matcher.find()){
+            lastFound = matcher.group(1)
+        }
+        snippet = lastFound ? lastFound : snippet
         StringBuilder builder = new StringBuilder()
         snippet.eachLine { line ->
             String stripLine = line.trim()

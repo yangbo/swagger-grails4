@@ -228,7 +228,12 @@ class Reader implements OpenApiReader {
             def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
             def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
             comments = comments ?: ""
-            fieldSchema.description = comments + " \n" + fieldSchema.description
+            if (fieldSchema.description){
+                fieldSchema.description = comments + " \n" + fieldSchema.description
+            }else{
+                fieldSchema.description = comments
+            }
+
             propertiesMap[field.name] = fieldSchema
         }
         return propertiesMap

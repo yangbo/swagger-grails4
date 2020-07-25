@@ -43,6 +43,14 @@ class ReaderTest extends Specification implements AutowiredTest {
         operation.parameters[1].name == "password"
     }
 
+    def "Extract only one comment block"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        then: "Extract only one comment block of star comment block"
+        command.properties["onlyOneCommentBlock"].description == "Only One Comment Block Should be extracted."
+    }
+
     /**
      * Create an OpenAPI object with configured ahead.
      * @return OpenAPI object has been configured.

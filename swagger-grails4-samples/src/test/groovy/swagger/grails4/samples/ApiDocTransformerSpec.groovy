@@ -16,12 +16,19 @@ class ApiDocTransformerSpec extends Specification {
         @ApiDoc("My Command")
         class MyCommand {
             /**
+             * Upper Comment
+             */
+            /**
              * 
              * The avatar url of uer.
              * It may be empty.
              * 
              */
             String avatarUrl
+             // Upper of Only One Comment Block, should be ignored
+            /**
+             * Upper of Only One Comment Block, Should be skipped
+             */
             /**
              * The name of user in comments.
              */
@@ -85,5 +92,27 @@ class ApiDocTransformerSpec extends Specification {
         startStarPattern.matcher("  \t  /*****")
         startStarPattern.matcher("  \t  /*****\n注释").replaceFirst("") == "\n注释"
         startStarPattern.matcher("  \t  /*注释").replaceFirst("") == "注释"
+    }
+
+    def "test comment block pattern"(){
+        when:
+        def snippet = """
+// comment
+/**
+ * Upper
+ */
+/**
+ * This is comment.
+ */
+"""
+        def blockPattern = ~$/(?s)\s*(/\*+.*?\*/)\s*/$
+        def matcher = blockPattern.matcher(snippet)
+        String lastFound
+        while(matcher.find()){
+            lastFound = matcher.group(1)
+        }
+        println lastFound
+        then:
+        lastFound
     }
 }

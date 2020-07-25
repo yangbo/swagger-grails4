@@ -18,4 +18,13 @@ class UserCommand implements Validateable{
      * Area of user
      */
     MyEnum area
+
+    // Upper of Only One Comment Block, should be ignored
+    /**
+     * Upper of Only One Comment Block, Should be skipped
+     */
+    /**
+     * Only One Comment Block Should be extracted.
+     */
+    String onlyOneCommentBlock
 }
