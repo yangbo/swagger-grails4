@@ -194,12 +194,11 @@ class Reader implements OpenApiReader {
         if (commandClasses) {
             // Create schema in components
             def commandClass = commandClasses[0]
-            if (!isCommandClass(commandClass)){
+            if (!isCommandClass(commandClass)) {
                 return null
             }
             Schema schema = buildSchema(commandClass)
             def ref = "#/components/schemas/${schema.name}"
-            openAPI.schema(commandClass.canonicalName, schema)
             Content content = new Content()
             content.addMediaType(JSON_MIME, new MediaType(schema: new Schema($ref: ref)))
             content.addMediaType(DEFAULT_MIME, new MediaType(schema: new Schema($ref: ref)))
@@ -237,12 +236,19 @@ class Reader implements OpenApiReader {
     Schema buildSchema(Class aClass) {
         TypeAndFormat typeAndFormat = buildType(aClass)
         String name = aClass.canonicalName
-        def schema = new Schema(
+        // check exists schema, avoid infinite loop
+        Schema schema = getSchemaFromOpenAPI(name)
+        if (schema) {
+            return schema
+        }
+        // TODO: handle enum correctly
+        schema = new Schema(
                 name: name,
                 type: typeAndFormat.type,
                 format: typeAndFormat.format,
                 description: buildSchemaDescription(aClass)
         )
+        openAPI.schema(aClass.canonicalName, schema)
         switch (typeAndFormat.type) {
             case "object":
                 schema.properties = buildClassProperties(aClass)
@@ -253,6 +259,11 @@ class Reader implements OpenApiReader {
                 if (itemClass) {
                     schema.properties = [items: buildSchema(itemClass)]
                 }
+                break
+            case "enum":
+                schema.type = "integer"
+                schema.setEnum(buildEnumItems(aClass))
+                buildEnumDescription(aClass, schema)
                 break
         }
         return schema
@@ -304,6 +315,9 @@ class Reader implements OpenApiReader {
             case { aClass.isArray() }:
                 typeAndFormat.type = "array"
                 break
+            case Enum:
+                typeAndFormat.type = "enum"
+                break
             default:
                 typeAndFormat.type = "object"
                 break
@@ -317,7 +331,33 @@ class Reader implements OpenApiReader {
 
     static String buildSchemaDescription(Class aClass) {
         ApiDoc apiDocAnnotation = aClass.getAnnotation(ApiDoc) as ApiDoc
-        apiDocAnnotation?.value()
+        apiDocAnnotation?.value() ?: ""
+    }
+
+    Schema getSchemaFromOpenAPI(String name) {
+        openAPI.components?.getSchemas()?.get(name)
+    }
+
+    /**
+     * Use enum id as property value
+     */
+    static List buildEnumItems(Class enumClass) {
+        enumClass.values()?.collect { it.id }
+    }
+
+    static void buildEnumDescription(Class aClass, Schema schema) {
+        StringBuilder builder = new StringBuilder(schema.description)
+        if (!schema.description.endsWith(".")){
+            builder.append(". ")
+        }
+        aClass.values()?.each {
+            String idPart = ""
+            if (it.hasProperty("id")){
+                idPart = "(${it.id})"
+            }
+            builder.append("${it.name()}${idPart}")
+        }
+        schema.description = builder.toString()
     }
 
     /**

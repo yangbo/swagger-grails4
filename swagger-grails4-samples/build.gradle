@@ -36,7 +36,7 @@ targetCompatibility = '1.8'
 
 grails {
     plugins {
-        // 对多租户安全插件的依赖
+        // 对swagger插件的依赖
         compile project(":swagger-grails4")
     }
     // 解决命令行过程问题

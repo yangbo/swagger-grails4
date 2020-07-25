@@ -17,5 +17,5 @@ class UserCommand implements Validateable{
     /**
      * Area of user
      */
-    String area
+    MyEnum area
 }
