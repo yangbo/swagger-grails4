@@ -27,4 +27,9 @@ class UserCommand implements Validateable{
      * Only One Comment Block Should be extracted.
      */
     String onlyOneCommentBlock
+
+    /**
+     * Test List property
+     */
+    List<String> listProperty
 }

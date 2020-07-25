@@ -24,6 +24,8 @@ import swagger.grails4.openapi.builder.OperationBuilder
 import swagger.grails4.openapi.builder.TagBuilder
 
 import java.lang.reflect.Method
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
 
 /**
  * Groovy annotation reader for OpenAPI
@@ -222,7 +224,7 @@ class Reader implements OpenApiReader {
                 case "mappings":
                     return
             }
-            def fieldSchema = buildSchema(field.type)
+            def fieldSchema = buildSchema(field.type, field.genericType)
             // @ApiDoc prefer over @ApiDocComment
             def apiDocAnn = field.getAnnotation(ApiDoc)
             def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
@@ -242,9 +244,10 @@ class Reader implements OpenApiReader {
     /**
      * Build Schema from command class or domain class
      * @param aClass command class, domain class
+     * @param genericType the genericType of the aClass, such as a Collection<Type> class
      * @return OAS Schema object
      */
-    Schema buildSchema(Class aClass) {
+    Schema buildSchema(Class aClass, Type genericType = null) {
         TypeAndFormat typeAndFormat = buildType(aClass)
         String name = aClass.canonicalName
         // check exists schema, avoid infinite loop
@@ -267,6 +270,10 @@ class Reader implements OpenApiReader {
             case "array":
                 // try to get array element type
                 Class itemClass = aClass.componentType
+                // for collections
+                if (!itemClass && aClass instanceof Collection && genericType instanceof ParameterizedType) {
+                    itemClass = genericType.actualTypeArguments[0] as Class
+                }
                 if (itemClass && schema instanceof ArraySchema) {
                     schema.items = buildSchema(itemClass)
                 }
