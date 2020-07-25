@@ -136,9 +136,10 @@ class Reader implements OpenApiReader {
             if (allowedMethods && allowedMethods[actionName]) {
                 httpMethod = PathItem.HttpMethod.valueOf(allowedMethods[actionName] as String)
             }
-            UrlCreator urlCreator = urlMappingsHolder.getReverseMapping(controllerArtifact.logicalPropertyName, actionName,
+            def controllerName = controllerArtifact.logicalPropertyName
+            UrlCreator urlCreator = urlMappingsHolder.getReverseMapping(controllerName, actionName,
                     controllerArtifact.pluginName, [:])
-            url = urlCreator.createURL([:], "utf-8")
+            url = urlCreator.createURL([controller: controllerName, action: actionName], "utf-8")
         }
         def pathItem = new PathItem()
         pathItem.operation(httpMethod, operation)
