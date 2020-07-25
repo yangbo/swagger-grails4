@@ -1,5 +1,6 @@
 package swagger.grails4.openapi
 
+import grails.artefact.DomainClass
 import grails.core.GrailsApplication
 import grails.core.GrailsControllerClass
 import grails.validation.Validateable
@@ -238,6 +239,9 @@ class Reader implements OpenApiReader {
                 case "mapping":
                 case "log":
                 case "logger":
+                case "instanceControllersDomainBindingApi":
+                case { DomainClass.isAssignableFrom(field.type) && field.name == "version" }:
+                case { DomainClass.isAssignableFrom(field.type) && field.name == "transients" }:
                     return
             }
             Schema schema = getSchemaFromOpenAPI(field.type)
