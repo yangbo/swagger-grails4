@@ -270,9 +270,11 @@ class Reader implements OpenApiReader {
             case "array":
                 // try to get array element type
                 Class itemClass = aClass.componentType
-                // for collections
-                if (!itemClass && aClass instanceof Collection && genericType instanceof ParameterizedType) {
+                // extract item type for collections
+                if (!itemClass && Collection.isAssignableFrom(aClass)  && genericType instanceof ParameterizedType) {
                     itemClass = genericType.actualTypeArguments[0] as Class
+                }else{
+                    itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
                     schema.items = buildSchema(itemClass)
