@@ -13,6 +13,7 @@ import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.Operation
 import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.Paths
+import io.swagger.v3.oas.models.media.ArraySchema
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
@@ -217,6 +218,8 @@ class Reader implements OpenApiReader {
                 case ~/.*(grails_|\$).*/:
                 case "metaClass":
                 case "clazz":
+                case "constraints":
+                case "mappings":
                     return
             }
             def fieldSchema = buildSchema(field.type)
@@ -224,7 +227,8 @@ class Reader implements OpenApiReader {
             def apiDocAnn = field.getAnnotation(ApiDoc)
             def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
             def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
-            fieldSchema.description = comments + (comments ? ". " : "") + fieldSchema.description
+            comments = comments ?: ""
+            fieldSchema.description = comments + " \n" + fieldSchema.description
             propertiesMap[field.name] = fieldSchema
         }
         return propertiesMap
@@ -243,12 +247,11 @@ class Reader implements OpenApiReader {
         if (schema) {
             return schema
         }
-        schema = new Schema(
-                name: name,
-                type: typeAndFormat.type,
-                format: typeAndFormat.format,
-                description: buildSchemaDescription(aClass)
-        )
+        Map args = [name: name,
+                    type: typeAndFormat.type,
+                    format: typeAndFormat.format,
+                    description: buildSchemaDescription(aClass)]
+        schema = typeAndFormat.type == "array" ? new ArraySchema(args) : new Schema(args)
         if (typeAndFormat.type in ["object", "enum"]) {
             openAPI.schema(aClass.canonicalName, schema)
         }
@@ -259,8 +262,8 @@ class Reader implements OpenApiReader {
             case "array":
                 // try to get array element type
                 Class itemClass = aClass.componentType
-                if (itemClass) {
-                    schema.properties = [items: buildSchema(itemClass)]
+                if (itemClass && schema instanceof ArraySchema) {
+                    schema.items = buildSchema(itemClass)
                 }
                 break
             case "enum":
@@ -350,13 +353,16 @@ class Reader implements OpenApiReader {
 
     static void buildEnumDescription(Class aClass, Schema schema) {
         StringBuilder builder = new StringBuilder(schema.description)
-        if (schema?.description?.trim() && !schema.description.endsWith(".")){
-            builder.append(". ")
+        if (schema?.description?.trim()) {
+            char endChar = schema.description.charAt(schema.description.length() - 1)
+            if (Character.isAlphabetic(endChar) || Character.isIdeographic(endChar)) {
+                builder.append(". ")
+            }
         }
         builder.append("Enum of: ")
         aClass.values()?.eachWithIndex { enumValue, idx ->
             String idPart = ""
-            if (enumValue.hasProperty("id")){
+            if (enumValue.hasProperty("id")) {
                 idPart = "(${enumValue.id})"
             }
             // append ", " if idx > 0

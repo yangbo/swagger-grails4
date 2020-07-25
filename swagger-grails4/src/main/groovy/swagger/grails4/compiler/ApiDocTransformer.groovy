@@ -108,6 +108,7 @@ class ApiDocTransformer extends AbstractASTTransformation {
     /**
      * Extract comments from endLineColumn position upwards to the begins, stop when hit "{" or "}" not in
      * comment blocks.
+     * Extract only one comments block nearest to field.
      *
      * @param sourceUnit
      * @param endLineColumn
@@ -120,15 +121,16 @@ class ApiDocTransformer extends AbstractASTTransformation {
         def end = endLineColumn
         def starStack = []
         boolean finish = false
+        boolean hitOneStarCommentBlock = false
         while (start.line >= 1) {
-            if (finish) {
+            if (finish || hitOneStarCommentBlock) {
                 return commentBuffer.toString()
             }
             String snippet = srcBuffer.getSnippet(start, end)
             // end early if hit '{' or '}' when not in comment block
             // find // start
             snippet.eachLine { line ->
-                if (finish) {
+                if (finish || hitOneStarCommentBlock) {
                     return
                 }
                 // match "//" comment line
@@ -165,6 +167,7 @@ class ApiDocTransformer extends AbstractASTTransformation {
                     if (startStarMatcher) {
                         starStack.pop()
                         commentBuffer.insert(0, startStarMatcher.replaceFirst("").trim())
+                        hitOneStarCommentBlock = true
                     } else if (singleStarMatcher) {
                         // remove leading star
                         commentBuffer.insert(0, singleStarMatcher.replaceFirst("").trim())
