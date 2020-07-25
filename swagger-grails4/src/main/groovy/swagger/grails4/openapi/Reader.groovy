@@ -298,7 +298,15 @@ class Reader implements OpenApiReader {
                     itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
-                    schema.items = buildSchema(itemClass)
+                    def buildSchema = buildSchema(itemClass)
+                    // exists schema
+                    if (buildSchema.$ref) {
+                        def componentSchema = getSchemaFromOpenAPI(itemClass, false)
+                        schema.items = new Schema(type: "object", name: buildSchema.name,
+                                description: componentSchema?.description)
+                    }else{
+                        schema.items = buildSchema
+                    }
                 }
                 break
             case "enum":
@@ -388,10 +396,10 @@ class Reader implements OpenApiReader {
      * @return
      */
     @CompileStatic
-    Schema getSchemaFromOpenAPI(Class aClass) {
+    Schema getSchemaFromOpenAPI(Class aClass, boolean clone = true) {
         def name = schemaNameFromClass(aClass)
         def schema = openAPI.components?.getSchemas()?.get(name)
-        if (schema) {
+        if (schema && clone) {
             schema = cloneSchema(schema)
             schema.$ref = getRef(schema)
             // remove properties to prevent cycle referencing

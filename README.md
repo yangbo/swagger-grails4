@@ -21,4 +21,6 @@ in sales@telecwin.com.
 - Automatically create description of values of Enum, if there is an id property then show id value in descriptions.
 - Automatically create element Schema of array. 
 - Correctly process reference cycle
+  Because swagger-ui will hang-up if there is a cycle referencing in schemas, so we will not reference existed schema in 
+  array schemas items.
 - TODO: Can handle inherited trait properties and plain class properties.
