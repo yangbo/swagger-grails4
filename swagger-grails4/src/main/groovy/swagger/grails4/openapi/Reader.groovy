@@ -256,6 +256,11 @@ class Reader implements OpenApiReader {
                 } else {
                     schema.description = comments
                 }
+            }else{
+                // exists schema, because swagger-ui hang-up when show cycle referencing schemas,so we will skip exists
+                // schemas
+                // exists schema
+                schema = new Schema(type: "object", name: schema.name, description: schema?.description + " [no ref for swagger-ui bug]")
             }
             propertiesMap[field.name] = schema
         }
@@ -299,14 +304,7 @@ class Reader implements OpenApiReader {
                 }
                 if (itemClass && schema instanceof ArraySchema) {
                     def buildSchema = buildSchema(itemClass)
-                    // exists schema
-                    if (buildSchema.$ref) {
-                        def componentSchema = getSchemaFromOpenAPI(itemClass, false)
-                        schema.items = new Schema(type: "object", name: buildSchema.name,
-                                description: componentSchema?.description)
-                    }else{
-                        schema.items = buildSchema
-                    }
+                    schema.items = buildSchema
                 }
                 break
             case "enum":
@@ -332,7 +330,6 @@ class Reader implements OpenApiReader {
             case short:
             case Short:
                 typeAndFormat.type = "integer"
-                typeAndFormat.format = ""
                 break
             case int:
             case Integer:
@@ -464,6 +461,6 @@ class Reader implements OpenApiReader {
     @CompileStatic
     static class TypeAndFormat {
         String type = "object"
-        String format = ""
+        String format = null
     }
 }
