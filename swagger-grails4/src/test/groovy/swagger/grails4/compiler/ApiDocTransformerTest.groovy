@@ -14,13 +14,13 @@ class ApiDocTransformerTest extends Specification {
         /**
          * The Comments.
          */
-        """ | "The Comments.\n"
+        """ | "The Comments."
         """
         
         /**
          * The Comments.
          * Multiple lines.
          */
-""" | "The Comments.\nMultiple lines.\n"
+""" | "The Comments.\nMultiple lines."
     }
 }

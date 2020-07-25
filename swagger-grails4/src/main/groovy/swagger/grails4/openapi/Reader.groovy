@@ -61,7 +61,7 @@ class Reader implements OpenApiReader {
             processApiDocAnnotation(it)
         }
         // sort controller by tag name
-        openAPI.tags = openAPI.tags.sort { it.name }
+        openAPI.tags = openAPI.tags?.sort { it.name }
         openAPI
     }
 
