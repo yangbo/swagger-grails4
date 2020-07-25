@@ -242,14 +242,15 @@ class Reader implements OpenApiReader {
         if (schema) {
             return schema
         }
-        // TODO: handle enum correctly
         schema = new Schema(
                 name: name,
                 type: typeAndFormat.type,
                 format: typeAndFormat.format,
                 description: buildSchemaDescription(aClass)
         )
-        openAPI.schema(aClass.canonicalName, schema)
+        if (typeAndFormat.type in ["object", "enum"]) {
+            openAPI.schema(aClass.canonicalName, schema)
+        }
         switch (typeAndFormat.type) {
             case "object":
                 schema.properties = buildClassProperties(aClass)
@@ -351,6 +352,7 @@ class Reader implements OpenApiReader {
         if (schema?.description?.trim() && !schema.description.endsWith(".")){
             builder.append(". ")
         }
+        builder.append("Enum of: ")
         aClass.values()?.eachWithIndex { enumValue, idx ->
             String idPart = ""
             if (enumValue.hasProperty("id")){
