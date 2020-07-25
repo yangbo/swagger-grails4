@@ -28,7 +28,6 @@ import swagger.grails4.openapi.builder.TagBuilder
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
-import java.sql.Date
 
 /**
  * Groovy annotation reader for OpenAPI

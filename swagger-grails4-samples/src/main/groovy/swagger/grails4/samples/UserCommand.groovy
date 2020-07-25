@@ -37,4 +37,9 @@ class UserCommand implements Validateable{
      * My Houses
      */
     List<House> houses
+
+    /**
+     * start time
+     */
+    Date startTime
 }

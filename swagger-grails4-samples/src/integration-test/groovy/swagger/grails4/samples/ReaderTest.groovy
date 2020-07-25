@@ -91,4 +91,14 @@ class ReaderTest extends Specification implements AutowiredTest {
         def houses = command.properties["houses"]
         println houses
     }
+
+    def "Test Date class"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        then:
+        def starTime = command.properties["startTime"]
+        starTime.type == "string"
+        starTime.format == "date-time"
+    }
 }
