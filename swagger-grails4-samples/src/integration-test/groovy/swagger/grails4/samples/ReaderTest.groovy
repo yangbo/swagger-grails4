@@ -101,4 +101,15 @@ class ReaderTest extends Specification implements AutowiredTest {
         starTime.type == "string"
         starTime.format == "date-time"
     }
+
+    def "Test isCycleReferencing"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        def myEnum = openAPI.components.schemas.get("swagger.grails4.samples.MyEnum")
+        println openAPI
+        then:
+        !reader.isCycleReferencing(command)
+        !reader.isCycleReferencing(myEnum)
+    }
 }

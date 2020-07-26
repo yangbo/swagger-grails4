@@ -28,6 +28,7 @@ import swagger.grails4.openapi.builder.TagBuilder
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.util.regex.Matcher
 
 /**
  * Groovy annotation reader for OpenAPI
@@ -239,6 +240,7 @@ class Reader implements OpenApiReader {
                 case "log":
                 case "logger":
                 case "instanceControllersDomainBindingApi":
+                case "instanceConvertersApi":
                 case { DomainClass.isAssignableFrom(field.type) && field.name == "version" }:
                 case { DomainClass.isAssignableFrom(field.type) && field.name == "transients" }:
                     return
@@ -256,11 +258,6 @@ class Reader implements OpenApiReader {
                 } else {
                     schema.description = comments
                 }
-            }else{
-                // exists schema, because swagger-ui hang-up when show cycle referencing schemas,so we will skip exists
-                // schemas
-                // exists schema
-                schema = new Schema(type: "object", name: schema.name, description: schema?.description + " [no ref for swagger-ui bug]")
             }
             propertiesMap[field.name] = schema
         }
@@ -292,6 +289,10 @@ class Reader implements OpenApiReader {
         switch (typeAndFormat.type) {
             case "object":
                 schema.properties = buildClassProperties(aClass)
+                // cut referencing cycle
+                schema.properties.each {
+                    cutReferencingCycle(it.value)
+                }
                 break
             case "array":
                 // try to get array element type
@@ -303,8 +304,9 @@ class Reader implements OpenApiReader {
                     itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
-                    def buildSchema = buildSchema(itemClass)
-                    schema.items = buildSchema
+                    schema.items = buildSchema(itemClass)
+                    // for swagger-ui hang-up bug
+                    cutReferencingCycle(schema.items)
                 }
                 break
             case "enum":
@@ -453,6 +455,62 @@ class Reader implements OpenApiReader {
     @CompileStatic
     static String schemaNameFromClass(Class aClass) {
         aClass.canonicalName
+    }
+
+    /**
+     * check if schema is in properties referencing cycle
+     * @param schema Schema or ArraySchema
+     * @return true the schema is in the reference cycle
+     */
+    boolean isCycleReferencing(Schema schema, String targetName = null) {
+        if (schema instanceof ArraySchema) {
+            schema = schema.items
+        }
+        if (targetName && targetName == schema.name) {
+            return true
+        }
+        // iterate schema properties and check if targetName can be reached by schema referencing
+        boolean found = false
+        // by $ref first
+        if (schema.$ref) {
+            schema = getSchemaBy$Ref(openAPI, schema.$ref)
+        }
+        schema?.properties?.each {
+            def propSchema = it.value
+            targetName = targetName ?: schema.name
+            if (!found && isCycleReferencing(propSchema, targetName)) {
+                found = true
+            }
+        }
+        return found
+    }
+
+    static Schema getSchemaBy$Ref(OpenAPI openAPI, String ref) {
+        Matcher m = (ref =~ $/#/components/schemas/(.+)/$)
+        if (!m) {
+            return null
+        }
+        def schemaName = m.group(1)
+        openAPI.components.schemas.find {
+            it.key == schemaName
+        }?.value
+    }
+
+    void cutReferencingCycle(Schema schema) {
+        // because swagger-ui hang-up when show cycle referencing schemas,so we will cut these referencing
+        if (isCycleReferencing(schema)) {
+            if (schema instanceof ArraySchema) {
+                schema = schema.items
+            }
+            def props = new StringBuilder("should have properties: ")
+            schema.properties.eachWithIndex { it, idx ->
+                props.append(idx > 0 ? ", " : "")
+                props.append("${it.key}(${it.value.name})")
+            }
+            schema.description = schema?.description + "${schema.name} [no properties for swagger-ui bug ${props}]"
+            schema.properties = [:]
+            schema.$ref = null
+        }
     }
 
     /**
