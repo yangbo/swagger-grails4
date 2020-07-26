@@ -507,7 +507,7 @@ class Reader implements OpenApiReader {
                 props.append(idx > 0 ? ", " : "")
                 props.append("${it.key}(${it.value.name})")
             }
-            schema.description = schema?.description + "${schema.name} [no properties for swagger-ui bug ${props}]"
+            schema.description = schema?.description + "${schema.name} [no properties/\$ref for swagger-ui bug, ${props}]"
             schema.properties = [:]
             schema.$ref = null
         }
