@@ -1,5 +1,6 @@
 package swagger.grails4
 
+import grails.util.Environment
 import io.swagger.v3.core.util.Json
 import swagger.grails4.openapi.ApiDoc
 
@@ -20,7 +21,10 @@ class OpenApiController {
         description "The OpenAPI API v3 json/yaml documents"
     })
     def document() {
-        def doc = openApiService.generateDocument()
+        def doc = [:]
+        if (Environment.current != Environment.PRODUCTION){
+            doc = openApiService.generateDocument()
+        }
         def json = Json.pretty().writeValueAsString(doc)
         render(text: json, contentType: "application/json", encoding: "UTF-8")
     }
