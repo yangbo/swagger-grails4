@@ -2,7 +2,7 @@ package swagger.grails4.openapi.builder
 
 import io.swagger.v3.oas.models.tags.Tag
 
-class TagBuilder implements AnnotationBuilder {
+class TagBuilder implements AnnotationBuilder<Tag> {
     Tag model = new Tag()
     /**
      * needed by AnnotationBuilder trait

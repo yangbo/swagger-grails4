@@ -24,4 +24,5 @@ in sales@telecwin.com.
   Because swagger-ui will hang-up if there is a cycle referencing in schemas, so we will not reference existed schema in 
   array schemas items.
 - Hide api doc in production environment.
+- Automatically generate response object document.
 - TODO: Can handle inherited trait properties and plain class properties.

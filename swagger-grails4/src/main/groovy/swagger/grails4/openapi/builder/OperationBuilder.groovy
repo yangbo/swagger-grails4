@@ -1,6 +1,5 @@
 package swagger.grails4.openapi.builder
 
-
 import io.swagger.v3.oas.models.Operation
 
 /**
@@ -11,7 +10,7 @@ import io.swagger.v3.oas.models.Operation
  * @see io.swagger.v3.oas.annotations.Operation
  * @author bo.yang <bo.yang@telecwin.com>
  */
-class OperationBuilder implements AnnotationBuilder {
+class OperationBuilder implements AnnotationBuilder<Operation> {
 
     Operation model = new Operation()
     /**
@@ -24,16 +23,29 @@ class OperationBuilder implements AnnotationBuilder {
         initPrimitiveElements()
     }
 
+    /**
+     * The "parameters" member of @ApiDoc.
+     * @param parameterClosures closure of parameters, delegate to ParameterBuilder.
+     * @return void
+     */
     def parameters(List<Closure> parameterClosures) {
         if (!model.parameters) {
             model.parameters = []
         }
         parameterClosures.each { closure ->
             ParameterBuilder builder = new ParameterBuilder(reader: reader)
-            def parameterClosure = closure.rehydrate(builder, this, this)
-            parameterClosure.resolveStrategy = Closure.DELEGATE_ONLY
-            parameterClosure()
-            model.parameters << builder.model
+            model.parameters << evaluateClosure(closure, builder)
+        }
+    }
+
+    def responses(Map<String, Closure> responsesClosures) {
+        if (!model.responses) {
+            model.responses = []
+        }
+        responsesClosures.each { code, closure ->
+            ResponseBuilder builder = new ResponseBuilder(reader: reader)
+            def resp = evaluateClosure(closure, builder)
+            model.responses.put(code, resp)
         }
     }
 }

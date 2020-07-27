@@ -15,8 +15,11 @@ import java.lang.reflect.Method
  *
  * @author bo.yang <bo.yang@telecwin.com>
  */
-trait AnnotationBuilder {
-
+trait AnnotationBuilder<T> {
+    /**
+     * The builder's production, should be override by implementing class
+     */
+    T model
     /**
      * The reader that use these builders
      */
@@ -46,8 +49,9 @@ trait AnnotationBuilder {
             String propertyName = method.name
             if (isPrimitiveElement(elementType)) {
                 // assign to model directly
-                if (this.model.hasProperty(propertyName)) {
-                    this.model[propertyName] = method.defaultValue
+                // must use getModel() instead of 'this.model' because we need implementing class overridden property
+                if (getModel().hasProperty(propertyName)) {
+                    getModel()[propertyName] = method.defaultValue
                     // add to primitive
                     primitiveElements << propertyName
                 }
@@ -55,7 +59,7 @@ trait AnnotationBuilder {
         }
     }
 
-    static def isPrimitiveElement(elementType) {
+    def isPrimitiveElement(elementType) {
         switch (elementType) {
             case String:
             case String[]:
@@ -80,7 +84,20 @@ trait AnnotationBuilder {
         }
         // assign primitive element value to model directly
         if (name in primitiveElements) {
-            this.model[name] = args[0]
+            getModel()[name] = args[0]
         }
+    }
+
+    /**
+     * Evaluate closure by delegating to builder and return the production model.
+     * @param closure api doc closure
+     * @param builder annotation builder
+     * @return the builder's model
+     */
+    def <M> M evaluateClosure(Closure closure, AnnotationBuilder<M> builder) {
+        def builderClosure = closure.rehydrate(builder, this, this)
+        builderClosure.resolveStrategy = Closure.DELEGATE_ONLY
+        builderClosure()
+        builder.model
     }
 }
