@@ -15,10 +15,21 @@ class SchemaBuilder implements AnnotationBuilder<Schema> {
         if (!model.properties) {
             model.properties = [:]
         }
-        schemaMap.each { name, closure ->
-            def builder = new SchemaBuilder(reader: reader)
-            def schema = evaluateClosure(closure, builder)
+        schemaMap.each { name, classOrClosure ->
+            def schema = buildSchema(classOrClosure)
             model.properties.put(name, schema)
+        }
+    }
+
+    /**
+     * Build Schema object from class or closure.
+     */
+    Schema buildSchema(Object classOrClosure) {
+        if (classOrClosure instanceof Closure) {
+            def builder = new SchemaBuilder(reader: reader)
+            return evaluateClosure(classOrClosure, builder)
+        }else{
+            return reader.buildSchema(classOrClosure as Class)
         }
     }
 }

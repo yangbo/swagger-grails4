@@ -13,13 +13,31 @@ class MediaTypeBuilder implements AnnotationBuilder<MediaType> {
 
     /**
      * Build schema from class or closure
-     * @param classOrClosure
+     * @param classOrClosure domain class or schema definition closure
+     * @param options additional options such as:
+     *  'properties' - to override some properties of schema.
      */
-    def schema(classOrClosure) {
-        if (classOrClosure instanceof Closure) {
+    def schema(Map options, classOrClosure) {
+        SchemaBuilder builder = new SchemaBuilder(reader: reader)
+        model.schema = builder.buildSchema(classOrClosure)
 
-        }else{
-            model.schema = reader.buildSchema(classOrClosure as Class)
+        if (options && options["properties"]) {
+            // override properties of schema
+            options["properties"].each { propName, propDefinition ->
+                def propSchemaBuilder = new SchemaBuilder(reader: reader)
+                this.model.schema.properties.put(propName, propSchemaBuilder.buildSchema(propDefinition))
+            }
         }
+    }
+
+    def schema(classOrClosure) {
+        schema([:], classOrClosure)
+    }
+
+    /**
+     * for call in "schema classOrClosure, [properties: {...}]" form
+     */
+    def schema(classOrClosure, Map options) {
+        schema(options, classOrClosure)
     }
 }
