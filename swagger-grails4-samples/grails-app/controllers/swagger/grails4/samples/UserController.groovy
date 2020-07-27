@@ -1,5 +1,6 @@
 package swagger.grails4.samples
 
+import swagger.grails4.RestApiResponse
 import swagger.grails4.openapi.ApiDoc
 
 @ApiDoc(tag = {
@@ -11,6 +12,12 @@ class UserController {
     @ApiDoc(operation = {
         summary "List Users"
         description "List users, support query and paging parameters"
+        responses "200": {
+            content "default": {
+                description "success response"
+                schema RestApiResponse
+            }
+        }
     })
     def index() {}
 
@@ -28,6 +35,12 @@ class UserController {
                         inType "query"
                         schema { type "string" }
                     }])
+        responses "200": {
+            content "default": {
+                description "success response"
+                schema RestApiResponse, properties: [info: UserCommand]
+            }
+        }
     })
     def login(String password, String username) {
         log.debug("$username, $password")
@@ -37,6 +50,16 @@ class UserController {
     @ApiDoc(operation = {
         summary "Create User"
         description "Create a new user"
+        responses "200": {
+            content "default": {
+                description "success response"
+                schema {
+                    name "CustomSchema"
+                    type "string"
+                    description "The customized json response"
+                }
+            }
+        }
     })
     def createUser(UserCommand command) {
     }
