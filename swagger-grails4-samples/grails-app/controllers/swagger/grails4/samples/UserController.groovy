@@ -16,6 +16,11 @@ class UserController {
                 description "success response"
                 schema RestApiResponse
             }
+        }, "201": {
+            content "default": {
+                description "success response with 201"
+                schema UserCommand
+            }
         }
     })
     def index() {}
