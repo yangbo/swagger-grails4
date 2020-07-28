@@ -1,4 +1,4 @@
-package swagger.grails4
+package swagger.grails4.samples
 
 import swagger.grails4.openapi.ApiDoc
 

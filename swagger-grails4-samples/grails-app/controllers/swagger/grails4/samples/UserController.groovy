@@ -1,6 +1,5 @@
 package swagger.grails4.samples
 
-import swagger.grails4.RestApiResponse
 import swagger.grails4.openapi.ApiDoc
 
 @ApiDoc(tag = {

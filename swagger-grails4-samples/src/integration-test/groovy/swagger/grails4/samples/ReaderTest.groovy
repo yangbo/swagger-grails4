@@ -112,4 +112,15 @@ class ReaderTest extends Specification implements AutowiredTest {
         !reader.isCycleReferencing(command)
         !reader.isCycleReferencing(myEnum)
     }
+
+    def "Response schema should support comments-to-description"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def response = openAPI.components.schemas.get("swagger.grails4.samples.RestApiResponse")
+        println(response)
+        then:
+        response.properties["code"].description
+        response.properties["msg"].description
+        response.properties["info"].description
+    }
 }
