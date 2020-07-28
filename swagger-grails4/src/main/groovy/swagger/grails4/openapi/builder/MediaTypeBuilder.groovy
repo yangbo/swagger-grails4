@@ -25,7 +25,8 @@ class MediaTypeBuilder implements AnnotationBuilder<MediaType> {
             // override properties of schema
             options["properties"].each { propName, propDefinition ->
                 def propSchemaBuilder = new SchemaBuilder(reader: reader)
-                this.model.schema.properties.put(propName, propSchemaBuilder.buildSchema(propDefinition))
+                def schema = propSchemaBuilder.buildSchema(propDefinition)
+                this.model.schema.properties.put(propName, schema)
             }
         }
     }

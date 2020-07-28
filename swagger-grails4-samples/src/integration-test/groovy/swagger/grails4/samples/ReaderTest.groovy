@@ -5,6 +5,7 @@ import grails.testing.mixin.integration.Integration
 import grails.testing.spring.AutowiredTest
 import io.swagger.v3.oas.integration.SwaggerConfiguration
 import io.swagger.v3.oas.models.OpenAPI
+import io.swagger.v3.oas.models.PathItem
 import io.swagger.v3.oas.models.info.Info
 import spock.lang.Specification
 import swagger.grails4.openapi.Reader
@@ -122,5 +123,15 @@ class ReaderTest extends Specification implements AutowiredTest {
         response.properties["code"].description
         response.properties["msg"].description
         response.properties["info"].description
+    }
+
+    def "response schema with overridden 'properties'"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        PathItem pathItem = openAPI.paths.get("/user/login")
+        def schema = pathItem.post.responses.get("200").content.get("default").schema
+        println(schema)
+        then:
+        schema.properties["info"].name == UserCommand.name
     }
 }
