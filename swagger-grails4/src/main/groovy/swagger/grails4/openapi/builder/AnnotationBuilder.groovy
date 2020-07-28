@@ -36,6 +36,22 @@ trait AnnotationBuilder<T> {
      * Extract properties from OpenAPI annotation
      */
     def initPrimitiveElements() {
+        if (openApiAnnotationClass instanceof Closure) {
+            initAnnotationPrimitiveElements()
+        }else{
+            initClassPrimitiveProperties()
+        }
+    }
+
+    def initClassPrimitiveProperties(){
+        openApiAnnotationClass.metaClass.properties.each { MetaProperty metaProperty ->
+            if (isPrimitiveElement(metaProperty.type)){
+                primitiveElements << metaProperty.name
+            }
+        }
+    }
+
+    def initAnnotationPrimitiveElements() {
         openApiAnnotationClass.methods.each { Method method ->
             if (method.name in systemMethods) {
                 return
