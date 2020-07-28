@@ -1,6 +1,6 @@
 package swagger.grails4.openapi.builder
 
-
+import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
 /**
@@ -36,7 +36,7 @@ trait AnnotationBuilder<T> {
      * Extract properties from OpenAPI annotation
      */
     def initPrimitiveElements() {
-        if (openApiAnnotationClass instanceof Closure) {
+        if (Annotation.isAssignableFrom(openApiAnnotationClass)) {
             initAnnotationPrimitiveElements()
         }else{
             initClassPrimitiveProperties()
@@ -56,10 +56,6 @@ trait AnnotationBuilder<T> {
             if (method.name in systemMethods) {
                 return
             }
-            // override elements to call builder methods
-            // if (method.name in this.overrideElements) {
-            //     return
-            // }
             def elementType = method.returnType
             // add dynamic properties
             String propertyName = method.name
