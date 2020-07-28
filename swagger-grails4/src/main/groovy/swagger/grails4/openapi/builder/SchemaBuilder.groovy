@@ -22,7 +22,7 @@ class SchemaBuilder implements AnnotationBuilder<Schema> {
     }
 
     /**
-     * Build Schema object from class or closure.
+     * Build Schema object from class or closure, if it exists already then clone one with $ref value set.
      */
     Schema buildSchema(Object classOrClosure) {
         if (classOrClosure instanceof Closure) {

@@ -391,8 +391,9 @@ class Reader implements OpenApiReader {
 
     /**
      * Get a clone schema from openApi
-     * @param aClass
-     * @return
+     * @param aClass class to find in openApi
+     * @param clone true means clone the schema object if it is found in openApi
+     * @return the found schema object or null
      */
     @CompileStatic
     Schema getSchemaFromOpenAPI(Class aClass, boolean clone = true) {
@@ -441,7 +442,7 @@ class Reader implements OpenApiReader {
     static Schema cloneSchema(Schema schema) {
         Schema clone = new Schema()
         schema.metaClass.properties.each { prop ->
-            // skip read-only property
+            // only assign writable property
             def setMethod = Schema.methods.find {
                 it.name == "set${prop.name.capitalize()}"
             }

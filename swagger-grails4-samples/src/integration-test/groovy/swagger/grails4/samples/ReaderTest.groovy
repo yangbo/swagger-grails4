@@ -132,6 +132,8 @@ class ReaderTest extends Specification implements AutowiredTest {
         def schema = pathItem.post.responses.get("200").content.get("default").schema
         println(schema)
         then:
+        // schema with properties-overridden should not use $ref
+        !schema.$ref
         schema.properties["info"].name == UserCommand.name
     }
 }

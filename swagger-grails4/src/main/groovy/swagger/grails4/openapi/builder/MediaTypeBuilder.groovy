@@ -22,6 +22,8 @@ class MediaTypeBuilder implements AnnotationBuilder<MediaType> {
         model.schema = builder.buildSchema(classOrClosure)
 
         if (options && options["properties"]) {
+            // schema with properties-overridden should not use $ref
+            model.schema.$ref = null
             // override properties of schema
             options["properties"].each { propName, propDefinition ->
                 def propSchemaBuilder = new SchemaBuilder(reader: reader)
