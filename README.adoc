@@ -72,6 +72,15 @@ class UserCommand implements Validateable{
 }
 ----
 
+==== API endpoint and html document URL
+
+Now start your REST api grails application and visit "http://<host:port>/api",
+you can see swagger-ui document.
+
+Visit "http://<host:port>/api/doc", you can get json object of document.
+
+==== More controls
+
 .You can override comments using @ApiDoc in the fields
 [source,groovy]
 ----
