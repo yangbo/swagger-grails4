@@ -85,15 +85,16 @@ tasks.withType(GroovyCompile) {
 // enable if you wish to package this plugin as a standalone application
 bootJar.enabled = false
 grailsPublish {
-    // TODO: Provide values here
-    user = 'yangbo'
-    key = 'key'
-    githubSlug = 'yangbo/swagger-grails4-plugin'
+    //user = 'yangbo'
+    //key = 'key'
+    //userOrg = 'Telecwin' // Optional
+    repo = 'plugins'       // Optional, default to 'plugins'
+    githubSlug = 'yangbo/swagger-grails4'
     license {
         name = 'MIT'
     }
-    title = "OpenAPIv3(Swagger) plugin"
-    desc = "OpenAPI v3 plugin for grails4"
+    title = "OpenAPIv3(Swagger) Plugin"
+    desc = "A Grails-v4 Plugin to automatically generate REST API document using OpenAPI-v3 (swagger)"
     developers = [bobyang:"Bob Yang"]
 }
 

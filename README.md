@@ -27,3 +27,4 @@ in sales@telecwin.com.
 - Automatically generate response object document.
 - 'properties' of response Schema can be customized
 - TODO: Can handle inherited trait properties and plain class properties.
+- TODO: recognize GORM association properties.
