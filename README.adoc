@@ -6,7 +6,7 @@
 :sectnums:
 :sectnumlevels: 6
 
-Automatic API generate plugin using swagger/OpenAPI v3 for grails4.
+Grails4 Plugin to automatically generate swagger/OpenAPI-v3 REST API documents.
 
 link:README_zh.adoc[Chinese README]
 
