@@ -1,4 +1,10 @@
 = swagger-grails4
+:icons: font
+:stem:
+:toc:
+:toclevels: 6
+:sectnums:
+:sectnumlevels: 6
 
 Automatic API generate plugin using swagger/OpenAPI v3 for grails4.
 

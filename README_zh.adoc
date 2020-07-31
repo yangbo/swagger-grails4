@@ -1,4 +1,10 @@
 = swagger-grails4
+:icons: font
+:stem:
+:toc:
+:toclevels: 6
+:sectnums:
+:sectnumlevels: 6
 
 自动生成 Swagger/OpenAPI-v3 文档的 Grails 插件
 
