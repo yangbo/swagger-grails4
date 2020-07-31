@@ -1,20 +1,18 @@
 = swagger-grails4
 
-Automatic API generate plugin using swagger/OpenAPI v3 for grails4.
+自动生成 Swagger/OpenAPI-v3 文档的 Grails 插件
 
-link:README_zh.adoc[Chinese README]
+== 用法
 
-== Usage
-
-=== Requirements
+=== 软件版本
 
 1. Grails v4 or greater
 2. Java 1.8
 3. Groovy 2.5
 
-=== General Usage steps
+=== 基本使用步骤
 
-==== Specify gradle dependence
+==== 指定 gradle 依赖
 
 [source,groovy]
 ----
@@ -27,13 +25,12 @@ dependencies {
 }
 ----
 
-==== Add @ApiDoc annotations
+==== 添加 @ApiDoc 注解
 
-Add @ApiDoc annotations to Controller and Command/Domain classes any Schema classes you want plugin
-to automatically extract your comments as OpenAPI descriptions.
+添加 @ApiDoc 注解到 Controller 和 Command、Domain 类或者任何需要文档的类上。
+插件会自动抽取“字段”的注释作为OpenAPI的描述内容。
 
-Add @ApiDoc to controller:
-
+.添加 @ApiDoc 到Controller:
 [source,groovy]
 ----
 @ApiDoc(tag = {
@@ -43,7 +40,7 @@ class UserController {
 }
 ----
 
-.Add @ApiDoc to action methods:
+.添加 @ApiDoc 到 action 方法:
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -60,9 +57,10 @@ def createUser(UserCommand command) {
 }
 ----
 
-The plugin will automatically extract comments or annotation in the command class, if you add @ApiDoc annotation to the class.
+插件会自动抽取 command class 字段的注释作为文档的描述信息。
+如果你在字段上添加了 @ApiDoc 注解，那么会优先使用注解的内容。
 
-.Add @ApiDoc annotation to the command class or domain classes.
+.添加 @ApiDoc 注解到 command 类或者 domain 类
 [source,groovy]
 ----
 @ApiDoc("The command contains User properties")
@@ -74,16 +72,16 @@ class UserCommand implements Validateable{
 }
 ----
 
-==== API endpoint and html document URL
+==== API文档的 JSON 端点和HTML文档的URL地址
 
-Now start your REST api grails application and visit "http://<host:port>/api",
-you can see swagger-ui document.
+现在启动你的 REST api grails 应用程序，访问 "http://<host:port>/api/doc"，
+就能看到 swagger-ui 的文档了。
 
-Visit "http://<host:port>/api/doc", you can get json object of document.
+访问 "http://<host:port>/api/doc", 就能取到文档对应的 json 对象。
 
-==== More controls
+==== 更多控制
 
-.You can override comments using @ApiDoc in the fields
+.你可以用@ApiDoc替换字段的注释内容
 [source,groovy]
 ----
 @ApiDoc("The command contains User properties")
@@ -96,9 +94,9 @@ class UserCommand implements Validateable{
 }
 ----
 
-If the action parameters is primitive types, you can document them like this.
+如果 action 方法的参数是基础类型，例如 Integer、String 等，那么你可以这样对它们进行文档化。
 
-.Using OpenAPI Parameter model to document parameters
+.使用 OpenAPI Parameter model 来描述参数
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -120,15 +118,18 @@ def login(String password, String username) {
 }
 ----
 
-Every parameter in the 'annotation closure' (Groovy concept) is a
+在'annotation closure'(Groovy的一个技术) 中每一个**parameter**就对应一个
 https://github.com/OAI/OpenAPI-Specification/blob/3.0.1/versions/3.0.1.md#parameterObject[Parameter] object,
-so you can use any 'primitive type properties' that Parameter object has, complex object properties needs special processing, maybe not available.
+所以你可以使用任何 Parameter 类的'基础类型属性'例如 name、description 等，而复杂对象需要特殊处理，有可能还未支持。
+另外 Parameter 的**in**属性对应的是**inType**，因为in是groovy的关键字。
 
-===== Advanced Response document
+===== 更多的Response文档化技术
 
-You can change the properties of Response schema, this is convenient if your api response has payload that changed in action methods.
+你可以修改 Response schema 的 properties 内容。
 
-.given response class like this:
+假如你的 api response 对象在不同的action中会返回不同的信息类，那么使用下面的技术就会很方便了。
+
+.假设 response 类像这样：
 [source,groovy]
 ----
 @ApiDoc("A test rest api response class")
@@ -148,7 +149,7 @@ class RestApiResponse {
 }
 ----
 
-.override properties of a response class because this action return UserCommand in the info property
+.重载 response 类的 properties，因为在本 action 中 info 属性返回的是 UserCommand 对象
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -165,9 +166,9 @@ def login(LoginCommand loginCommand) {
 }
 ----
 
-You can even totally define schema in the annotation closure.
+你甚至可以在 annotation closure 中完全重新定义 schema。
 
-.define schema in annotation closure
+.在 annotation closure 中定义 schema
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -188,9 +189,9 @@ def createUser(UserCommand command) {
 }
 ----
 
-You can specify multiple "Status Code" and content MIME in responses.
+你可以在 responses 项中说明多个 "Status Code" 以及 content MIME 类型。
 
-.specify multiple "Status Code"
+.说明多个"Status Code"
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -212,7 +213,7 @@ def index() {
 }
 ----
 
-.specify multiple "MIME" content
+.说明多个"MIME" content
 [source,groovy]
 ----
 @ApiDoc(operation = {
@@ -232,33 +233,33 @@ def index() {
 }
 ----
 
-== Features
+== 特色功能
 
-- Automatically build operations from grails controllers and UrlMapping.
-- Automatically extract Schema from any classes with @ApiDoc annotation.
-- Automatically extract comments of fields to build descriptions of properties.
-- Automatically create description of values of Enum, if there is an id property then show id value in descriptions.
-- Automatically create element Schema of array.
-- Correctly process reference cycle
-  Because swagger-ui will hang-up if there is a cycle referencing in schemas, so we will not reference existed schema in
-  array schemas items.
-- Hide api doc in production environment.
-- Automatically generate response object document.
-- 'properties' of response Schema can be customized
+- 从 grails controller 和 UrlMapping 中自动创建 operations 模型
+- 从任何添加了 @ApiDoc 注解的类中自动抽取 Schema 模型
+- 自动抽取类的 fields 的注释来创建 properties 的描述内容
+- 自动创建包含所有 Enum 枚举类型值的说明文档，如果枚举对象有 id 属性，那么会显示对应的id值
+- 自动创建数组的成员类型的文档，即 array 的成员的Schema
+- 正确处理“循环引用”
+
+  所谓的“循环引用”是指类A中有一个属性的类型是类B，而类B中有一个属性的类型是类A，或者类B的属性间接引用到类A。
+
+  因为swagger-ui在遇到“循环引用”情况时，会导致界面挂起，所以我们会在遇到循环引用时终止引用。
+
+- 在开发环境中隐藏 API DOC 功能
+- 自动生成 response 对象文档
+- response Schema 的'properties'可以被定制、改写
 - TODO: Can handle inherited trait properties and plain class properties.
 - TODO: recognize GORM association properties.
 
-If you need some more features please **feel free to submit an issue with 'enhancement' label**, any suggestions are welcome.
+如果你需要更多的功能，请**提交一个带有'enhancement'标签的issue**，欢迎多提意见、建议。
 
-We wish this plugin can save your time to write tedious api documentations.
+希望这个插件能节省你编写繁冗的API文档的时间。
 
-Enjoy Grails REST API document with 'swagger-grails4'!
+祝使用 'swagger-grails4' 插件编写 Grails REST API 文档快乐!
 
-== About Author
+== 关于作者
 
-We are Beijing Telecwin Co.Ltd. a company provides software develop services and
-develop SaaS systems for e-commercial merchants in PWA such as weixin mini-programs
-and Mobile-Application such as Android/iOS app.
+我们是北京塔尔旺科技有限公司，一家提供软件开发服务和电商 SaaS 系统的公司。
+我们在中国北京，如果您对我们的服务和产品感兴趣，请联系我们，我们的联系邮箱是 sales@telecwin.com。
 
-We located in Beijing China, if you are interested in our service and products please feel free to contact us
-in sales@telecwin.com.
