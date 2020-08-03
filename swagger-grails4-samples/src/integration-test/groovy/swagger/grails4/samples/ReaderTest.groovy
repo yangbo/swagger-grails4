@@ -136,4 +136,16 @@ class ReaderTest extends Specification implements AutowiredTest {
         !schema.$ref
         schema.properties["info"].name == UserCommand.name
     }
+
+    def "multiple trait properties"(){
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def userCommand = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        println(userCommand)
+        then:
+        userCommand.properties["offset"]
+        userCommand.properties["offset"].description
+        userCommand.properties["max"]
+        userCommand.properties["max"].description
+    }
 }

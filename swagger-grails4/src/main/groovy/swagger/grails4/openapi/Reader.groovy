@@ -25,7 +25,9 @@ import swagger.grails4.openapi.builder.AnnotationBuilder
 import swagger.grails4.openapi.builder.OperationBuilder
 import swagger.grails4.openapi.builder.TagBuilder
 
+import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.util.regex.Matcher
@@ -228,29 +230,41 @@ class Reader implements OpenApiReader {
 
     @CompileStatic
     Map<String, Schema> buildClassProperties(Class<?> aClass) {
-        def propertiesMap = [:] as Map<String, Schema>
-        aClass.declaredFields.each { field ->
+        SortedMap<String, Schema> propertiesMap = new TreeMap<>()
+        aClass.metaClass.properties.each { MetaProperty metaProperty ->
+            if (!(metaProperty.modifiers & Modifier.PUBLIC)) {
+                return
+            }
+            String fieldName = metaProperty.name
+            Class fieldType = metaProperty.type
+            Field field = null
+            if (metaProperty instanceof MetaBeanProperty) {
+                field = metaProperty.field?.field
+            }
             // skip grails/groovy fields
-            switch (field.name) {
+            switch (fieldName) {
                 case ~/.*(grails_|\$).*/:
                 case "metaClass":
+                case "class":
                 case "clazz":
                 case "constraints":
+                case "constraintsMap":
                 case "mapping":
                 case "log":
                 case "logger":
                 case "instanceControllersDomainBindingApi":
                 case "instanceConvertersApi":
-                case { DomainClass.isAssignableFrom(field.type) && field.name == "version" }:
-                case { DomainClass.isAssignableFrom(field.type) && field.name == "transients" }:
+                case { DomainClass.isAssignableFrom(fieldType) && fieldName == "version" }:
+                case { DomainClass.isAssignableFrom(fieldType) && fieldName == "transients" }:
                     return
             }
-            Schema schema = getSchemaFromOpenAPI(field.type)
+            Schema schema = getSchemaFromOpenAPI(fieldType)
             if (!schema) {
-                schema = buildSchema(field.type, field.genericType)
+                schema = buildSchema(fieldType, field?.genericType)
+                // TODO get annotations from field or trait getter method
                 // @ApiDoc prefer over @ApiDocComment
-                def apiDocAnn = field.getAnnotation(ApiDoc)
-                def apiDocCommentAnn = field.getAnnotation(ApiDocComment)
+                def apiDocAnn = field?.getAnnotation(ApiDoc)
+                def apiDocCommentAnn = field?.getAnnotation(ApiDocComment)
                 def comments = apiDocAnn ? apiDocAnn.value() : apiDocCommentAnn?.value()
                 comments = comments ?: ""
                 if (schema.description) {
@@ -259,7 +273,7 @@ class Reader implements OpenApiReader {
                     schema.description = comments
                 }
             }
-            propertiesMap[field.name] = schema
+            propertiesMap[fieldName] = schema
         }
         return propertiesMap
     }

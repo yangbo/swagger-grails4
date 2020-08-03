@@ -7,6 +7,60 @@ import spock.lang.Specification
  */
 class ApiDocTransformerSpec extends Specification {
 
+    def "testTrait"() {
+        when:def script = '''
+        import swagger.grails4.openapi.ApiDoc
+        import swagger.grails4.openapi.ApiDocComment
+
+        @ApiDoc("My Trait")
+        trait MyTrait {
+            /**
+             * Upper Comment
+             */
+            /**
+             * 
+             * The avatar url of uer.
+             * It may be empty.
+             * 
+             */
+            @ApiDoc("My Trait")
+            String avatarUrl
+             // Upper of Only One Comment Block, should be ignored
+            /**
+             * Upper of Only One Comment Block, Should be skipped
+             */
+            /**
+             * The name of user in comments.
+             */
+            String username
+            /**
+            * The password of user
+            */
+            String password
+        }
+        //@ApiDoc("My Command")
+        class TheCommand implements MyTrait {
+        }
+        annotations = []
+        MyTrait.declaredMethods.each { method ->
+            def ann = method.getAnnotation(ApiDocComment)
+            if (ann) {
+                annotations << ann
+            }
+        }
+        annotations.each {
+            println it
+        }
+    '''
+        GroovyShell shell = new GroovyShell()
+        shell.evaluate(script, "script.groovy")
+        def annotations = shell.context.getVariable("annotations")
+        then:
+        annotations[0].value() == "The avatar url of uer.It may be empty."
+        annotations[1].value() == "The name of user in comments."
+        annotations[2].value() == "The password of user"
+    }
+
     def "testTransform"() {
         when:
         def script = '''

@@ -4,7 +4,7 @@ import grails.validation.Validateable
 import swagger.grails4.openapi.ApiDoc
 
 @ApiDoc("The command contains User properties")
-class UserCommand implements Validateable{
+class UserCommand implements Validateable, Page {
     /**
      * The name of user in comments.
      */
