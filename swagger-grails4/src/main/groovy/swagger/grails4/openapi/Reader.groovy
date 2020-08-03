@@ -255,6 +255,7 @@ class Reader implements OpenApiReader {
                 case "logger":
                 case "instanceControllersDomainBindingApi":
                 case "instanceConvertersApi":
+                case "errors":
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "version" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "transients" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "all" }:
@@ -263,8 +264,8 @@ class Reader implements OpenApiReader {
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "constrainedProperties" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirty" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirtyPropertyNames" }:
-                case "errors":
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "gormDynamicFinders" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "gormPersistentEntity" }:
                     return
             }
             Schema schema = getSchemaFromOpenAPI(fieldType)
@@ -311,6 +312,14 @@ class Reader implements OpenApiReader {
         }
         switch (typeAndFormat.type) {
             case "object":
+                // skip java.xxx/org.grails.xxx/org.springframework.xxx package class
+                String packageName = aClass.package?.name
+                if (packageName?.startsWith('java.') ||
+                        packageName?.startsWith('org.grails.') ||
+                        packageName?.startsWith('org.springframework.')
+                ) {
+                    return schema
+                }
                 schema.properties = buildClassProperties(aClass)
                 // cut referencing cycle
                 schema.properties.each {
@@ -437,7 +446,7 @@ class Reader implements OpenApiReader {
     static List buildEnumItems(Class enumClass) {
         enumClass.values()?.collect {
             // if has id property then use it, otherwise use enum name
-            if (it.hasProperty("id")){
+            if (it.hasProperty("id")) {
                 it.id
             } else {
                 it.name()
