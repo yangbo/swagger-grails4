@@ -263,7 +263,7 @@ class Reader implements OpenApiReader {
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "constrainedProperties" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirty" }:
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirtyPropertyNames" }:
-                case { DomainClass.isAssignableFrom(aClass) && fieldName == "errors" }:
+                case "errors":
                 case { DomainClass.isAssignableFrom(aClass) && fieldName == "gormDynamicFinders" }:
                     return
             }
