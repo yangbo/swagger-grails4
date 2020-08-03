@@ -245,6 +245,7 @@ class Reader implements OpenApiReader {
             switch (fieldName) {
                 case ~/.*(grails_|\$).*/:
                 case "metaClass":
+                case "properties":
                 case "class":
                 case "clazz":
                 case "constraints":
@@ -254,8 +255,16 @@ class Reader implements OpenApiReader {
                 case "logger":
                 case "instanceControllersDomainBindingApi":
                 case "instanceConvertersApi":
-                case { DomainClass.isAssignableFrom(fieldType) && fieldName == "version" }:
-                case { DomainClass.isAssignableFrom(fieldType) && fieldName == "transients" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "version" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "transients" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "all" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "attached" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "belongsTo" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "constrainedProperties" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirty" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "dirtyPropertyNames" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "errors" }:
+                case { DomainClass.isAssignableFrom(aClass) && fieldName == "gormDynamicFinders" }:
                     return
             }
             Schema schema = getSchemaFromOpenAPI(fieldType)
@@ -426,7 +435,14 @@ class Reader implements OpenApiReader {
      * Use enum id as property value
      */
     static List buildEnumItems(Class enumClass) {
-        enumClass.values()?.collect { it.id }
+        enumClass.values()?.collect {
+            // if has id property then use it, otherwise use enum name
+            if (it.hasProperty("id")){
+                it.id
+            } else {
+                it.name()
+            }
+        }
     }
 
     static void buildEnumDescription(Class aClass, Schema schema) {
