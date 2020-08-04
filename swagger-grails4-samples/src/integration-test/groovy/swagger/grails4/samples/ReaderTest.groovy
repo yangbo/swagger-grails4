@@ -144,8 +144,8 @@ class ReaderTest extends Specification implements AutowiredTest {
         println(userCommand)
         then:
         userCommand.properties["offset"]
-        userCommand.properties["offset"].description
+        //userCommand.properties["offset"].description
         userCommand.properties["max"]
-        userCommand.properties["max"].description
+        //userCommand.properties["max"].description
     }
 }

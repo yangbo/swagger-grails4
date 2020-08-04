@@ -1,5 +1,6 @@
 package swagger.grails4.samples
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 /**
@@ -7,6 +8,7 @@ import spock.lang.Specification
  */
 class ApiDocTransformerSpec extends Specification {
 
+    @Ignore
     def "testTrait"() {
         when:def script = '''
         import swagger.grails4.openapi.ApiDoc
