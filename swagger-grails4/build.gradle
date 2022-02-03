@@ -8,6 +8,10 @@ buildscript {
     }
 }
 
+plugins {
+    id 'maven-publish'
+}
+
 version "0.0.2"
 group "swagger.grails4"
 
@@ -89,12 +93,9 @@ publishing {
         maven {
             url "https://maven.pkg.github.com/webapps-ch/swagger-grails4"
             name "GitHubPackages"
-            credentials(HttpHeaderCredentials) {
-                name = 'Job-Token'
-                value = System.getenv("GITHUB_TOKEN")
-            }
-            authentication {
-                header(HttpHeaderAuthentication)
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
