@@ -7,6 +7,7 @@ import grails.gorm.validation.ConstrainedProperty
 import grails.validation.Validateable
 import grails.web.Action
 import grails.web.mapping.UrlCreator
+import grails.web.mapping.UrlMapping
 import grails.web.mapping.UrlMappingsHolder
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -113,7 +114,7 @@ class Reader implements OpenApiReader {
             def closureClass = apiDoc.operation()
             def operationBuilder = new OperationBuilder(reader: this)
             // resolve grails action command parameters
-            operationBuilder.model.requestBody = buildActionCommandParameters(actionName, controllerArtifact)
+            operationBuilder.model.requestBody = buildActionCommandParameters(actionName, controllerArtifact, urlMappingsHolder)
             // process operation closure that can override parameters information
             def operation = processClosure(closureClass, operationBuilder) as Operation
             operation.addTagsItem(controllerTag.name)
@@ -129,9 +130,7 @@ class Reader implements OpenApiReader {
         // 3. default as GET
 
         // 1. from UrlMapping
-        def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
-            it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
-        }
+        UrlMapping urlMappingOfAction = getUrlMappingOfAction(urlMappingsHolder, controllerArtifact, actionName)
         PathItem.HttpMethod httpMethod = PathItem.HttpMethod.GET
         String url
         if (urlMappingOfAction) {
@@ -212,7 +211,7 @@ class Reader implements OpenApiReader {
      * @param grailsControllerClass action belonged grails controller class
      */
     @CompileStatic
-    RequestBody buildActionCommandParameters(String actionName, GrailsControllerClass grailsControllerClass) {
+    RequestBody buildActionCommandParameters(String actionName, GrailsControllerClass grailsControllerClass, UrlMappingsHolder urlMappingsHolder) {
         Class plainClass = grailsControllerClass.clazz
         def actionMethods = plainClass.methods.find { it.name == actionName && it.getAnnotation(Action) }
         def actionAnnotation = actionMethods.getAnnotation(Action)
@@ -223,6 +222,13 @@ class Reader implements OpenApiReader {
             if (!isCommandClass(commandClass)) {
                 return null
             }
+
+            // If it is a GET request, do not add command class as request body
+            UrlMapping urlActionMapping = getUrlMappingOfAction(urlMappingsHolder, grailsControllerClass, actionName)
+            if (urlActionMapping && urlActionMapping.httpMethod == 'GET') {
+                return null
+            }
+
             Schema schema = buildSchema(commandClass)
             def ref = getRef(schema)
             Content content = new Content()
@@ -572,4 +578,12 @@ class Reader implements OpenApiReader {
         String type = "object"
         String format = null
     }
+
+    private UrlMapping getUrlMappingOfAction(UrlMappingsHolder urlMappingsHolder, controllerArtifact, String actionName) {
+        def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
+            it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
+        }
+        return urlMappingOfAction
+    }
+
 }
