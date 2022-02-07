@@ -13,6 +13,7 @@ class UrlMappings {
         "/"(controller: 'application', action:'index')
         post "/user/login"(controller: 'user', action:'login')
         post "/users"(controller: 'user', action:'createUser')
+        get "/user/$id"(controller: 'user', action:'showUser')
 
         "500"(view: '/error')
         "404"(view: '/notFound')
