@@ -3,6 +3,7 @@ package swagger.grails4.openapi
 import grails.artefact.DomainClass
 import grails.core.GrailsApplication
 import grails.core.GrailsControllerClass
+import grails.gorm.validation.ConstrainedProperty
 import grails.validation.Validateable
 import grails.web.Action
 import grails.web.mapping.UrlCreator
@@ -21,6 +22,7 @@ import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.RequestBody
 import io.swagger.v3.oas.models.tags.Tag
+import org.grails.web.mapping.RegexUrlMapping
 import swagger.grails4.openapi.builder.AnnotationBuilder
 import swagger.grails4.openapi.builder.OperationBuilder
 import swagger.grails4.openapi.builder.TagBuilder
@@ -142,6 +144,15 @@ class Reader implements OpenApiReader {
             }
             httpMethod = PathItem.HttpMethod.valueOf(httpMethodName)
             url = urlMappingOfAction.urlData.urlPattern
+            //Try to replace asterisk placeholders of path parameters
+            if (urlMappingOfAction instanceof RegexUrlMapping) {
+                urlMappingOfAction.constraints.each { def constrainedProperty ->
+                    //Replace optional placeholder first
+                    url = url.replaceFirst("\\(\\(\\*\\)\\)\\?", "\\(\\*\\)")
+                    //Then replace variables
+                    url = url.replaceFirst("\\(\\*\\)", '{' + ((ConstrainedProperty) constrainedProperty).propertyName + '}')
+                }
+            }
         } else {
             // 2. from controller
             def allowedMethods = controllerArtifact.getPropertyValue("allowedMethods")
