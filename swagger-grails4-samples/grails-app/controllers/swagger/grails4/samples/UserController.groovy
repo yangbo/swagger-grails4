@@ -14,7 +14,7 @@ class UserController {
         responses "200": {
             content "default": {
                 description "success response"
-                schema RestApiResponse
+                schema User[]
             }
         }, "201": {
             content "default": {

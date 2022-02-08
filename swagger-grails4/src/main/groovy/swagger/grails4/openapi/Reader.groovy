@@ -338,10 +338,8 @@ class Reader implements OpenApiReader {
                     return schema
                 }
                 schema.properties = buildClassProperties(aClass)
-                // cut referencing cycle
-                schema.properties.each {
-                    cutReferencingCycle(it.value)
-                }
+                //Always get reference to object
+                schema = getSchemaFromOpenAPI(aClass)
                 break
             case "array":
                 // try to get array element type
@@ -353,9 +351,8 @@ class Reader implements OpenApiReader {
                     itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
-                    schema.items = buildSchema(itemClass)
-                    // for swagger-ui hang-up bug
-                    cutReferencingCycle(schema.items)
+                    // Build object schema if not already done, and assign reference to it
+                    schema.items =  buildSchema(itemClass)
                 }
                 break
             case "enum":

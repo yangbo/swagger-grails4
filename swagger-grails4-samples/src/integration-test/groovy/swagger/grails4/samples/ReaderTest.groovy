@@ -62,6 +62,16 @@ class ReaderTest extends Specification implements AutowiredTest {
         prop.items.type == "string"
     }
 
+    def "Extract list object type"() {
+        when:
+        OpenAPI openAPI = reader.read([UserController] as Set, [:])
+        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
+        then:
+        def prop = command.properties["houses"]
+        prop.type == "array"
+        prop.items.type == "object"
+    }
+
     /**
      * Create an OpenAPI object with configured ahead.
      * @return OpenAPI object has been configured.
