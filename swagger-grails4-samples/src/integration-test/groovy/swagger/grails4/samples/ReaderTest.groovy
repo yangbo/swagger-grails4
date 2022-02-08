@@ -84,15 +84,6 @@ class ReaderTest extends Specification implements AutowiredTest {
         Reader.buildType(UserCommand).type == "object"
     }
 
-    def "Test cycle reference"() {
-        when:
-        OpenAPI openAPI = reader.read([UserController] as Set, [:])
-        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
-        then:
-        def houses = command.properties["houses"]
-        println houses
-    }
-
     def "Test Date class"() {
         when:
         OpenAPI openAPI = reader.read([UserController] as Set, [:])
@@ -101,17 +92,6 @@ class ReaderTest extends Specification implements AutowiredTest {
         def starTime = command.properties["startTime"]
         starTime.type == "string"
         starTime.format == "date-time"
-    }
-
-    def "Test isCycleReferencing"() {
-        when:
-        OpenAPI openAPI = reader.read([UserController] as Set, [:])
-        def command = openAPI.components.schemas.get("swagger.grails4.samples.UserCommand")
-        def myEnum = openAPI.components.schemas.get("swagger.grails4.samples.MyEnum")
-        println openAPI
-        then:
-        !reader.isCycleReferencing(command)
-        !reader.isCycleReferencing(myEnum)
     }
 
     def "Response schema should support comments-to-description"() {

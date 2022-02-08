@@ -325,7 +325,7 @@ class Reader implements OpenApiReader {
                     description: buildSchemaDescription(aClass)]
         schema = typeAndFormat.type == "array" ? new ArraySchema(args) : new Schema(args)
         if (typeAndFormat.type in ["object", "enum"]) {
-            openAPI.schema(aClass.canonicalName, schema)
+            openAPI.schema(name, schema)
         }
         switch (typeAndFormat.type) {
             case "object":
@@ -514,34 +514,6 @@ class Reader implements OpenApiReader {
         aClass.canonicalName
     }
 
-    /**
-     * check if schema is in properties referencing cycle
-     * @param schema Schema or ArraySchema
-     * @return true the schema is in the reference cycle
-     */
-    boolean isCycleReferencing(Schema schema, String targetName = null) {
-        if (schema instanceof ArraySchema) {
-            schema = schema.items
-        }
-        if (targetName && targetName == schema.name) {
-            return true
-        }
-        // iterate schema properties and check if targetName can be reached by schema referencing
-        boolean found = false
-        // by $ref first
-        if (schema.$ref) {
-            schema = getSchemaBy$Ref(openAPI, schema.$ref)
-        }
-        schema?.properties?.each {
-            def propSchema = it.value
-            targetName = targetName ?: schema.name
-            if (!found && isCycleReferencing(propSchema, targetName)) {
-                found = true
-            }
-        }
-        return found
-    }
-
     static Schema getSchemaBy$Ref(OpenAPI openAPI, String ref) {
         Matcher m = (ref =~ $/#/components/schemas/(.+)/$)
         if (!m) {
@@ -551,23 +523,6 @@ class Reader implements OpenApiReader {
         openAPI.components.schemas.find {
             it.key == schemaName
         }?.value
-    }
-
-    void cutReferencingCycle(Schema schema) {
-        // because swagger-ui hang-up when show cycle referencing schemas,so we will cut these referencing
-        if (isCycleReferencing(schema)) {
-            if (schema instanceof ArraySchema) {
-                schema = schema.items
-            }
-            def props = new StringBuilder("should have properties: ")
-            schema.properties.eachWithIndex { it, idx ->
-                props.append(idx > 0 ? ", " : "")
-                props.append("${it.key}(${it.value.name})")
-            }
-            schema.description = schema?.description + "${schema.name} [no properties/\$ref for swagger-ui bug, ${props}]"
-            schema.properties = [:]
-            schema.$ref = null
-        }
     }
 
     /**

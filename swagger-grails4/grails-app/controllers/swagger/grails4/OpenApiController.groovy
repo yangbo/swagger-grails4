@@ -33,6 +33,6 @@ class OpenApiController {
      * Redirect to /static/api/doc.html
      */
     def index() {
-        redirect(uri: "/static/api/doc.html")
+        render view: '/openApi/index'
     }
 }
