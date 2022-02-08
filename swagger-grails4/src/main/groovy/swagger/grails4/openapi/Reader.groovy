@@ -163,7 +163,8 @@ class Reader implements OpenApiReader {
                     controllerArtifact.pluginName, [:])
             url = urlCreator.createURL([controller: controllerName, action: actionName], "utf-8")
         }
-        def pathItem = new PathItem()
+        //Re-use existing path item, otherwise the new PathItem will override existing ones
+        def pathItem = openAPI.paths[url] ?: new PathItem()
         pathItem.operation(httpMethod, operation)
         openAPI.paths.addPathItem(url, pathItem)
     }
