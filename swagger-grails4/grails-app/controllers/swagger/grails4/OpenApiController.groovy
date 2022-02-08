@@ -19,6 +19,11 @@ class OpenApiController {
     @ApiDoc(operation = {
         summary "OpenApi json documents"
         description "The OpenAPI API v3 json/yaml documents"
+        responses "200": {
+            content "application/json": {
+                description "Swagger documentation"
+            }
+        }
     })
     def document() {
         def doc = [:]
