@@ -22,6 +22,7 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.tags.Tag
 import org.grails.web.mapping.RegexUrlMapping
 import swagger.grails4.openapi.builder.AnnotationBuilder
@@ -72,6 +73,12 @@ class Reader implements OpenApiReader {
         }
         // sort controller by tag name
         openAPI.tags = openAPI.tags?.sort { it.name }
+
+        // append server information
+        String url = application.config.grails.getAt("serverURL")
+        if (url) {
+            openAPI.servers([new Server(url: url)])
+        }
         openAPI
     }
 

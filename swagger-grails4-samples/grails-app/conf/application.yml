@@ -1,6 +1,7 @@
 ---
 grails:
     profile: rest-api
+    serverURL: "http://localhost:8080"
     codegen:
         defaultPackage: swagger.grails4.samples
     gorm:
