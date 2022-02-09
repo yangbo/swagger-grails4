@@ -35,7 +35,7 @@ class OpenApiController {
     }
 
     /**
-     * Redirect to /static/api/doc.html
+     * Render Swagger UI
      */
     def index() {
         render view: '/openApi/index'
