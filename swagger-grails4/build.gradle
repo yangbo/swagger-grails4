@@ -12,7 +12,7 @@ plugins {
     id 'maven-publish'
 }
 
-version "1.0.1-test4"
+version "1.0.1"
 group "swagger.grails4"
 
 apply plugin:"eclipse"
