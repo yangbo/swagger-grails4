@@ -12,7 +12,7 @@ plugins {
     id 'maven-publish'
 }
 
-version "1.0.1"
+version "0.0.3"
 group "swagger.grails4"
 
 apply plugin:"eclipse"
@@ -90,7 +90,7 @@ bootJar.enabled = false
 publishing {
     repositories {
         maven {
-            url "https://maven.pkg.github.com/webapps-ch/swagger-grails4"
+            url "https://maven.pkg.github.com/yangbo/swagger-grails4"
             name "GitHubPackages"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
