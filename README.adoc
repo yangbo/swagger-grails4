@@ -257,11 +257,3 @@ We wish this plugin can save your time to write tedious api documentations.
 
 Enjoy Grails REST API document with 'swagger-grails4'!
 
-== About Author
-
-We are Beijing Telecwin Co.Ltd. a company provides software develop services and
-develop SaaS systems for e-commercial merchants in PWA such as weixin mini-programs
-and Mobile-Application such as Android/iOS app.
-
-We located in Beijing China, if you are interested in our service and products please feel free to contact us
-in sales@telecwin.com.
