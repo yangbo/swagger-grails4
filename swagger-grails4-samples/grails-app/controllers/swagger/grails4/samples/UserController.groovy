@@ -14,7 +14,7 @@ class UserController {
         responses "200": {
             content "default": {
                 description "success response"
-                schema RestApiResponse
+                schema User[]
             }
         }, "201": {
             content "default": {
@@ -66,5 +66,28 @@ class UserController {
         }
     })
     def createUser(UserCommand command) {
+    }
+
+    @ApiDoc(operation = {
+        summary "Show User"
+        description "Create a new user"
+        parameters([{
+                        name "id"
+                        description "User id"
+                        inType "path"
+                        schema { type "string" }
+                    }])
+        responses "200": {
+            content "default": {
+                description "success response"
+                schema {
+                    name "CustomSchema"
+                    type "string"
+                    description "The customized json response"
+                }
+            }
+        }
+    })
+    def showUser(String id) {
     }
 }

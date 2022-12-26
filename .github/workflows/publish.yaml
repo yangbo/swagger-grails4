@@ -1,0 +1,27 @@
+name: Publish package to GitHub Packages
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Publish package
+        uses: gradle/gradle-build-action@bc3340afc5e3cc44f2321809ac090d731c13c514
+        with:
+          arguments: publish
+          build-root-directory: swagger-grails4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

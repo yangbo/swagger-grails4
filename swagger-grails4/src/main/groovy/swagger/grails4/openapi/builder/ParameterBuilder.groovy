@@ -17,4 +17,13 @@ class ParameterBuilder implements AnnotationBuilder<Parameter> {
     def inType(String inType) {
         model.in(inType)
     }
+
+    /**
+     * Build schema from class or closure
+     * @param classOrClosure domain class or schema definition closure
+     */
+    def schema(classOrClosure) {
+        SchemaBuilder builder = new SchemaBuilder(reader: reader)
+        model.schema = builder.buildSchema(classOrClosure)
+    }
 }

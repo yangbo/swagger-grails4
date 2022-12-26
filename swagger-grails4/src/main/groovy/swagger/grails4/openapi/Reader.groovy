@@ -3,9 +3,11 @@ package swagger.grails4.openapi
 import grails.artefact.DomainClass
 import grails.core.GrailsApplication
 import grails.core.GrailsControllerClass
+import grails.gorm.validation.ConstrainedProperty
 import grails.validation.Validateable
 import grails.web.Action
 import grails.web.mapping.UrlCreator
+import grails.web.mapping.UrlMapping
 import grails.web.mapping.UrlMappingsHolder
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -20,7 +22,9 @@ import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.parameters.RequestBody
+import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.tags.Tag
+import org.grails.web.mapping.RegexUrlMapping
 import swagger.grails4.openapi.builder.AnnotationBuilder
 import swagger.grails4.openapi.builder.OperationBuilder
 import swagger.grails4.openapi.builder.TagBuilder
@@ -69,6 +73,12 @@ class Reader implements OpenApiReader {
         }
         // sort controller by tag name
         openAPI.tags = openAPI.tags?.sort { it.name }
+
+        // append server information
+        String url = application.config.grails.getAt("serverURL")
+        if (url) {
+            openAPI.servers([new Server(url: url)])
+        }
         openAPI
     }
 
@@ -111,7 +121,7 @@ class Reader implements OpenApiReader {
             def closureClass = apiDoc.operation()
             def operationBuilder = new OperationBuilder(reader: this)
             // resolve grails action command parameters
-            operationBuilder.model.requestBody = buildActionCommandParameters(actionName, controllerArtifact)
+            operationBuilder.model.requestBody = buildActionCommandParameters(actionName, controllerArtifact, urlMappingsHolder)
             // process operation closure that can override parameters information
             def operation = processClosure(closureClass, operationBuilder) as Operation
             operation.addTagsItem(controllerTag.name)
@@ -127,9 +137,7 @@ class Reader implements OpenApiReader {
         // 3. default as GET
 
         // 1. from UrlMapping
-        def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
-            it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
-        }
+        UrlMapping urlMappingOfAction = getUrlMappingOfAction(urlMappingsHolder, controllerArtifact, actionName)
         PathItem.HttpMethod httpMethod = PathItem.HttpMethod.GET
         String url
         if (urlMappingOfAction) {
@@ -142,6 +150,15 @@ class Reader implements OpenApiReader {
             }
             httpMethod = PathItem.HttpMethod.valueOf(httpMethodName)
             url = urlMappingOfAction.urlData.urlPattern
+            //Try to replace asterisk placeholders of path parameters
+            if (urlMappingOfAction instanceof RegexUrlMapping) {
+                urlMappingOfAction.constraints.each { def constrainedProperty ->
+                    //Replace optional placeholder first
+                    url = url.replaceFirst("\\(\\(\\*\\)\\)\\?", "\\(\\*\\)")
+                    //Then replace variables
+                    url = url.replaceFirst("\\(\\*\\)", '{' + ((ConstrainedProperty) constrainedProperty).propertyName + '}')
+                }
+            }
         } else {
             // 2. from controller
             def allowedMethods = controllerArtifact.getPropertyValue("allowedMethods")
@@ -153,7 +170,8 @@ class Reader implements OpenApiReader {
                     controllerArtifact.pluginName, [:])
             url = urlCreator.createURL([controller: controllerName, action: actionName], "utf-8")
         }
-        def pathItem = new PathItem()
+        //Re-use existing path item, otherwise the new PathItem will override existing ones
+        def pathItem = openAPI.paths[url] ?: new PathItem()
         pathItem.operation(httpMethod, operation)
         openAPI.paths.addPathItem(url, pathItem)
     }
@@ -201,7 +219,7 @@ class Reader implements OpenApiReader {
      * @param grailsControllerClass action belonged grails controller class
      */
     @CompileStatic
-    RequestBody buildActionCommandParameters(String actionName, GrailsControllerClass grailsControllerClass) {
+    RequestBody buildActionCommandParameters(String actionName, GrailsControllerClass grailsControllerClass, UrlMappingsHolder urlMappingsHolder) {
         Class plainClass = grailsControllerClass.clazz
         def actionMethods = plainClass.methods.find { it.name == actionName && it.getAnnotation(Action) }
         def actionAnnotation = actionMethods.getAnnotation(Action)
@@ -212,6 +230,13 @@ class Reader implements OpenApiReader {
             if (!isCommandClass(commandClass)) {
                 return null
             }
+
+            // If it is a GET request, do not add command class as request body
+            UrlMapping urlActionMapping = getUrlMappingOfAction(urlMappingsHolder, grailsControllerClass, actionName)
+            if (urlActionMapping && urlActionMapping.httpMethod == 'GET') {
+                return null
+            }
+
             Schema schema = buildSchema(commandClass)
             def ref = getRef(schema)
             Content content = new Content()
@@ -308,7 +333,7 @@ class Reader implements OpenApiReader {
                     description: buildSchemaDescription(aClass)]
         schema = typeAndFormat.type == "array" ? new ArraySchema(args) : new Schema(args)
         if (typeAndFormat.type in ["object", "enum"]) {
-            openAPI.schema(aClass.canonicalName, schema)
+            openAPI.schema(name, schema)
         }
         switch (typeAndFormat.type) {
             case "object":
@@ -321,10 +346,8 @@ class Reader implements OpenApiReader {
                     return schema
                 }
                 schema.properties = buildClassProperties(aClass)
-                // cut referencing cycle
-                schema.properties.each {
-                    cutReferencingCycle(it.value)
-                }
+                //Always get reference to object
+                schema = getSchemaFromOpenAPI(aClass)
                 break
             case "array":
                 // try to get array element type
@@ -336,9 +359,8 @@ class Reader implements OpenApiReader {
                     itemClass = itemClass ?: Object
                 }
                 if (itemClass && schema instanceof ArraySchema) {
-                    schema.items = buildSchema(itemClass)
-                    // for swagger-ui hang-up bug
-                    cutReferencingCycle(schema.items)
+                    // Build object schema if not already done, and assign reference to it
+                    schema.items =  buildSchema(itemClass)
                 }
                 break
             case "enum":
@@ -497,34 +519,6 @@ class Reader implements OpenApiReader {
         aClass.canonicalName
     }
 
-    /**
-     * check if schema is in properties referencing cycle
-     * @param schema Schema or ArraySchema
-     * @return true the schema is in the reference cycle
-     */
-    boolean isCycleReferencing(Schema schema, String targetName = null) {
-        if (schema instanceof ArraySchema) {
-            schema = schema.items
-        }
-        if (targetName && targetName == schema.name) {
-            return true
-        }
-        // iterate schema properties and check if targetName can be reached by schema referencing
-        boolean found = false
-        // by $ref first
-        if (schema.$ref) {
-            schema = getSchemaBy$Ref(openAPI, schema.$ref)
-        }
-        schema?.properties?.each {
-            def propSchema = it.value
-            targetName = targetName ?: schema.name
-            if (!found && isCycleReferencing(propSchema, targetName)) {
-                found = true
-            }
-        }
-        return found
-    }
-
     static Schema getSchemaBy$Ref(OpenAPI openAPI, String ref) {
         Matcher m = (ref =~ $/#/components/schemas/(.+)/$)
         if (!m) {
@@ -536,23 +530,6 @@ class Reader implements OpenApiReader {
         }?.value
     }
 
-    void cutReferencingCycle(Schema schema) {
-        // because swagger-ui hang-up when show cycle referencing schemas,so we will cut these referencing
-        if (isCycleReferencing(schema)) {
-            if (schema instanceof ArraySchema) {
-                schema = schema.items
-            }
-            def props = new StringBuilder("should have properties: ")
-            schema.properties.eachWithIndex { it, idx ->
-                props.append(idx > 0 ? ", " : "")
-                props.append("${it.key}(${it.value.name})")
-            }
-            schema.description = schema?.description + "${schema.name} [no properties/\$ref for swagger-ui bug, ${props}]"
-            schema.properties = [:]
-            schema.$ref = null
-        }
-    }
-
     /**
      * According to the https://swagger.io/docs/specification/data-models/data-types/
      */
@@ -561,4 +538,12 @@ class Reader implements OpenApiReader {
         String type = "object"
         String format = null
     }
+
+    private UrlMapping getUrlMappingOfAction(UrlMappingsHolder urlMappingsHolder, controllerArtifact, String actionName) {
+        def urlMappingOfAction = urlMappingsHolder.urlMappings.find {
+            it.controllerName == controllerArtifact.logicalPropertyName && it.actionName == actionName
+        }
+        return urlMappingOfAction
+    }
+
 }

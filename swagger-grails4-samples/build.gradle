@@ -10,7 +10,7 @@ buildscript {
 }
 
 version "0.1"
-group "swagger.grails4.sasmple"
+group "swagger.grails4.sample"
 
 apply plugin:"eclipse"
 apply plugin:"idea"

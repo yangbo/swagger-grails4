@@ -19,6 +19,11 @@ class OpenApiController {
     @ApiDoc(operation = {
         summary "OpenApi json documents"
         description "The OpenAPI API v3 json/yaml documents"
+        responses "200": {
+            content "application/json": {
+                description "Swagger documentation"
+            }
+        }
     })
     def document() {
         def doc = [:]
@@ -30,9 +35,9 @@ class OpenApiController {
     }
 
     /**
-     * Redirect to /static/api/doc.html
+     * Render Swagger UI
      */
     def index() {
-        redirect(uri: "/static/api/doc.html")
+        render view: '/openApi/index'
     }
 }

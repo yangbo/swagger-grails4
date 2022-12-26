@@ -245,9 +245,6 @@ def index() {
 - Automatically extract comments of fields to build descriptions of properties.
 - Automatically create description of values of Enum, if there is an id property then show id value in descriptions.
 - Automatically create element Schema of array.
-- Correctly process reference cycle
-  Because swagger-ui will hang-up if there is a cycle referencing in schemas, so we will not reference existed schema in
-  array schemas items.
 - Hide api doc in production environment.
 - Automatically generate response object document.
 - 'properties' of response Schema can be customized
