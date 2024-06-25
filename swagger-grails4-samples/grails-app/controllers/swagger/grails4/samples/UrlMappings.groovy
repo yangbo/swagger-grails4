@@ -14,6 +14,9 @@ class UrlMappings {
         post "/user/login"(controller: 'user', action:'login')
         post "/users"(controller: 'user', action:'createUser')
         get "/user/$id"(controller: 'user', action:'showUser')
+        get "/user/test/$name"(controller: 'user', action:'test')
+
+        get "/test/$s"(controller: "teste", action: "teste")
 
         "500"(view: '/error')
         "404"(view: '/notFound')

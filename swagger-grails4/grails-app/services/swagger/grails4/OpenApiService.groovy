@@ -14,7 +14,9 @@ import swagger.grails4.openapi.GrailsScanner
 import swagger.grails4.openapi.Reader
 
 /**
- * 生成 OpenAPI 文档json的服务
+ * The service to generate json document of OpenAPI.
+ *
+ * cn: 生成 OpenAPI 文档json的服务
  */
 class OpenApiService {
 
@@ -24,7 +26,9 @@ class OpenApiService {
     ApplicationContext applicationContext
 
     /**
-     * 生成 OpenAPI 文档对象
+     * Generate OpenAPI Document object.
+     *
+     * cn: 生成 OpenAPI 文档对象
      */
     def generateDocument() {
         OpenAPIConfiguration config = new SwaggerConfiguration().openAPI(configOpenApi())

@@ -1,5 +1,6 @@
 package swagger.grails4.samples
 
+import grails.converters.JSON
 import swagger.grails4.openapi.ApiDoc
 
 @ApiDoc(tag = {
@@ -89,5 +90,25 @@ class UserController {
         }
     })
     def showUser(String id) {
+    }
+
+    @ApiDoc(operation = {
+        summary "Test String parameter"
+        description "Test string parameter in url-mapping like '/user/test/\$s' for Issue: Endpoint does not appear correctly. #32 of github."
+        parameters([{
+                        name "name"
+                        description "User name"
+                        inType "path"
+                        schema { type "string" }
+                    }])
+        responses "200": {
+            content "default": {
+                description "success response"
+                schema User
+            }
+        }
+    })
+    def test(String name) {
+        render(new User(username: name) as JSON)
     }
 }
